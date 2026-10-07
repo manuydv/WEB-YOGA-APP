@@ -12,6 +12,7 @@ interface AuthContextValue {
   refreshStaffUser: () => Promise<void>;
   refreshStudio: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null }>;
   signUp: (
     email: string,
     password: string
@@ -90,6 +91,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }, []);
 
+  // Redirects the whole page to Google and back — there's no session to
+  // inspect right after this resolves. A successful redirect round-trip
+  // updates `session` on its own via onAuthStateChange above.
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    return { error: error?.message ?? null };
+  }, []);
+
   const signUp = useCallback(async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     return {
@@ -114,10 +126,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshStaffUser,
       refreshStudio,
       signIn,
+      signInWithGoogle,
       signUp,
       signOut,
     }),
-    [session, staffUser, studio, loading, refreshStaffUser, refreshStudio, signIn, signUp, signOut]
+    [
+      session,
+      staffUser,
+      studio,
+      loading,
+      refreshStaffUser,
+      refreshStudio,
+      signIn,
+      signInWithGoogle,
+      signUp,
+      signOut,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
