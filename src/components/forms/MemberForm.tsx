@@ -10,6 +10,7 @@ export interface MemberFormValues {
   gender: Gender | "";
   phone: string;
   email: string;
+  dateOfBirth: string;
   joinedOn: string;
   monthlyFee: string;
   status: MemberStatus;
@@ -109,6 +110,10 @@ export default function MemberForm({
           placeholder="member@example.com"
           type="email"
         />
+      </Field>
+
+      <Field label="Date of birth">
+        <Input value={values.dateOfBirth} onChange={(e) => onChange("dateOfBirth", e.target.value)} type="date" />
       </Field>
 
       <Field label="Joined on" error={errors.joinedOn}>
