@@ -46,7 +46,7 @@ export default function Analytics() {
     const month = currentMonth();
     const [membersRes, expensesRes, paymentsRes] = await Promise.all([
       supabase.from("members").select("*"),
-      supabase.from("expenses").select("*").gte("expense_date", `${month}-01`).lt("expense_date", `${month}-32`),
+      supabase.from("expenses").select("*").gte("expense_date", `${month}-01`),
       config.mode === "membership"
         ? supabase.from("payments").select("member_id").eq("month", month).eq("paid", true)
         : Promise.resolve({ data: [] as { member_id: string }[] }),
@@ -84,7 +84,9 @@ export default function Analytics() {
     payroll: 0,
     other: 0,
   };
+  const thisMonth = currentMonth();
   for (const e of expenses) {
+    if (!e.expense_date.startsWith(thisMonth)) continue;
     expenseTotals[e.category] += e.amount;
   }
   const expenseSegments = EXPENSE_CATEGORY_ORDER.map((cat) => ({
