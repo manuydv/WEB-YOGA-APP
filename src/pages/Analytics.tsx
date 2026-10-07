@@ -44,6 +44,11 @@ export default function Analytics() {
   const load = useCallback(async () => {
     if (!staffUser) return;
     const month = currentMonth();
+
+    if (config.mode === "membership") {
+      await supabase.rpc("sync_member_statuses");
+    }
+
     const [membersRes, expensesRes, paymentsRes] = await Promise.all([
       supabase.from("members").select("*"),
       supabase.from("expenses").select("*").gte("expense_date", `${month}-01`),

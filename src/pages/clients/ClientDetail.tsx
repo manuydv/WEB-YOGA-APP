@@ -66,6 +66,10 @@ export default function ClientDetail() {
     if (!id) return;
     setError(null);
 
+    if (config.mode === "membership") {
+      await supabase.rpc("sync_member_statuses");
+    }
+
     const memberRes = await supabase.from("members").select("*").eq("id", id).single();
     if (memberRes.error) {
       setError(memberRes.error.message);
