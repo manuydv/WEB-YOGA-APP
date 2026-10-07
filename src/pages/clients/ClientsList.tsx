@@ -12,6 +12,7 @@ import type { Gender, Member, MemberStatus } from "@/types/database";
 
 type StatusFilter = MemberStatus | "all";
 type GenderFilter = Gender | "all";
+type PaymentFilter = "all" | "paid" | "unpaid";
 
 const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1, paused: 2 };
 
@@ -34,6 +35,7 @@ export default function ClientsList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +92,11 @@ export default function ClientsList() {
         if (term && !m.name.toLowerCase().includes(term)) return false;
         if (config.mode === "membership" && statusFilter !== "all" && m.status !== statusFilter) return false;
         if (genderFilter !== "all" && m.gender !== genderFilter) return false;
+        if (config.mode === "membership" && paymentFilter !== "all") {
+          const paid = paidMemberIds.has(m.id);
+          if (paymentFilter === "paid" && !paid) return false;
+          if (paymentFilter === "unpaid" && paid) return false;
+        }
         return true;
       })
       .sort((a, b) => {
@@ -99,7 +106,7 @@ export default function ClientsList() {
         }
         return a.name.localeCompare(b.name);
       });
-  }, [members, search, statusFilter, genderFilter, config.mode]);
+  }, [members, search, statusFilter, genderFilter, paymentFilter, paidMemberIds, config.mode]);
 
   return (
     <div className="relative min-h-[calc(100vh-6rem)]">
@@ -114,17 +121,29 @@ export default function ClientsList() {
         />
 
         {config.mode === "membership" ? (
-          <Segmented
-            label="Status"
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { label: "All", value: "all" },
-              { label: "Active", value: "active" },
-              { label: "Paused", value: "paused" },
-              { label: "Inactive", value: "inactive" },
-            ]}
-          />
+          <>
+            <Segmented
+              label="Status"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Active", value: "active" },
+                { label: "Paused", value: "paused" },
+                { label: "Inactive", value: "inactive" },
+              ]}
+            />
+            <Segmented
+              label="Payment this month"
+              value={paymentFilter}
+              onChange={setPaymentFilter}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Paid", value: "paid" },
+                { label: "Unpaid", value: "unpaid" },
+              ]}
+            />
+          </>
         ) : null}
         <Segmented
           label="Gender"
