@@ -191,7 +191,7 @@ function SettingsForm() {
 
         <Card className="mb-4">
           <div className="flex items-center justify-between">
-            <div className="text-[15px] font-semibold text-text">Self check-in link</div>
+            <div className="text-[15px] font-semibold text-text">Member account link</div>
             <button
               type="button"
               onClick={handleToggleCheckin}
@@ -205,9 +205,9 @@ function SettingsForm() {
             </button>
           </div>
           <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            Let a {intakeConfig.personLabelSingular.toLowerCase()} check themselves in with their phone number and
-            a PIN (set one from their profile), and see their own streak and attendance — no app install, no
-            account.
+            Let a {intakeConfig.personLabelSingular.toLowerCase()} sign in with their phone number and a PIN to see
+            their own streak and attendance, their batch, pay via UPI/QR, and update their phone/email/photo — no
+            app install, no account. Attendance itself is still marked by you, from the Check-in tab.
           </p>
           {checkinEnabled && checkinLink ? (
             <>

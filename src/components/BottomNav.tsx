@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { IconChart, IconChartPie, IconDots, IconPeople, IconReceipt } from "@/components/icons";
+import { IconChart, IconChartPie, IconCheckCircle, IconDots, IconPeople, IconReceipt } from "@/components/icons";
 import { useAuth } from "@/lib/auth-context";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
 
@@ -9,6 +9,7 @@ export default function BottomNav() {
 
   const items = [
     { to: "/clients", label: config.personLabelPlural, icon: IconPeople },
+    ...(config.mode === "membership" ? [{ to: "/attendance", label: "Check-in", icon: IconCheckCircle }] : []),
     { to: "/financials", label: "Financials", icon: IconChart },
     { to: "/expenses", label: "Expenses", icon: IconReceipt },
     { to: "/analytics", label: "Analytics", icon: IconChartPie },

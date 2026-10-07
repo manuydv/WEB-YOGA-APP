@@ -22,6 +22,7 @@ import ClassesList from "@/pages/classes/ClassesList";
 import ClassNew from "@/pages/classes/ClassNew";
 import ClassDetail from "@/pages/classes/ClassDetail";
 import Analytics from "@/pages/Analytics";
+import Attendance from "@/pages/Attendance";
 import More from "@/pages/More";
 import Settings from "@/pages/Settings";
 
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="/clients" element={<ClientsList />} />
             <Route path="/clients/new" element={<ClientNew />} />
             <Route path="/clients/:id" element={<ClientDetail />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route path="/financials" element={<Financials />} />
             <Route path="/expenses" element={<ExpensesList />} />
             <Route path="/expenses/new" element={<ExpenseNew />} />

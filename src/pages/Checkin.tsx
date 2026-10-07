@@ -437,7 +437,7 @@ export default function Checkin() {
     setPin(newPin);
     setNewPin("");
     setMode("checkin");
-    setClaimMessage("PIN set! Tap Check in below to continue.");
+    setClaimMessage("PIN set! Tap below to continue.");
   };
 
   return (
@@ -447,7 +447,7 @@ export default function Checkin() {
       <div className="w-full max-w-sm">
         {mode === "checkin" ? (
           <form onSubmit={handleSubmit}>
-            <h1 className="text-center text-2xl font-bold text-text">Check in at {studioInfo.name}</h1>
+            <h1 className="text-center text-2xl font-bold text-text">My account at {studioInfo.name}</h1>
             <p className="mb-7 mt-2 text-center text-sm text-text-muted">
               Enter your phone number and the PIN the front desk gave you.
             </p>
@@ -463,7 +463,7 @@ export default function Checkin() {
             {claimMessage ? <p className="mb-3 text-center text-sm text-success">{claimMessage}</p> : null}
 
             <Button type="submit" loading={submitting} disabled={!phone.trim() || !pin.trim()} className="w-full">
-              Check in
+              View my account
             </Button>
 
             <button
@@ -475,15 +475,15 @@ export default function Checkin() {
               }}
               className="mt-4 block w-full text-center text-sm text-accent"
             >
-              First time? Set up your check-in PIN
+              First time? Set up your account PIN
             </button>
           </form>
         ) : (
           <form onSubmit={handleClaim}>
-            <h1 className="text-center text-2xl font-bold text-text">Set your check-in PIN</h1>
+            <h1 className="text-center text-2xl font-bold text-text">Set your account PIN</h1>
             <p className="mb-7 mt-2 text-center text-sm text-text-muted">
-              Enter the phone number {studioInfo.name} has on file for you, and pick a 4-6 digit PIN to check in
-              with from now on.
+              Enter the phone number {studioInfo.name} has on file for you, and pick a 4-6 digit PIN to access your
+              account from now on.
             </p>
 
             <Field label="Phone number">
@@ -507,7 +507,7 @@ export default function Checkin() {
               }}
               className="mt-4 block w-full text-center text-sm text-text-muted"
             >
-              Already have a PIN? Check in instead
+              Already have a PIN? View my account
             </button>
           </form>
         )}
