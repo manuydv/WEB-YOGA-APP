@@ -18,8 +18,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["apple-touch-icon.png"],
       manifest: {
-        name: "Studio Ledger",
-        short_name: "Studio Ledger",
+        name: "TaraShaktiYoga",
+        short_name: "TaraShaktiYoga",
         description: "Member, payment, and financial tracking for studios and shops.",
         theme_color: "#F7F7FA",
         background_color: "#F7F7FA",

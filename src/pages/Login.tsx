@@ -25,7 +25,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-ink px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <h1 className="text-center text-3xl font-bold text-text">Studio Ledger</h1>
+        <h1 className="text-center text-3xl font-bold text-text">TaraShaktiYoga</h1>
         <p className="mb-7 mt-1 text-center text-sm text-text-muted">Sign in to your studio</p>
 
         <Field label="Email">
