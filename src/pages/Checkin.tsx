@@ -8,7 +8,7 @@ import { formatMoney } from "@/lib/money";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { Badge, Button, Card, DayPills, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
-import { IconCalendarCheck, IconFlame, IconPercent } from "@/components/icons";
+import { IconCalendarCheck, IconCheckCircle, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
@@ -79,6 +79,30 @@ export default function Checkin() {
 
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+
+  const [markingAttendance, setMarkingAttendance] = useState(false);
+  const [attendanceError, setAttendanceError] = useState<string | null>(null);
+
+  const handleMarkAttendance = async () => {
+    if (!result) return;
+    setMarkingAttendance(true);
+    setAttendanceError(null);
+    const { error: rpcError } = await supabase.rpc("public_mark_self_attendance", {
+      intake_slug: slug ?? "",
+      client_phone: result.phone ?? "",
+      pin,
+    });
+    setMarkingAttendance(false);
+    if (rpcError) {
+      setAttendanceError(rpcError.message);
+      return;
+    }
+    const todayStr = today();
+    setResult({
+      ...result,
+      recent_visits: result.recent_visits.includes(todayStr) ? result.recent_visits : [...result.recent_visits, todayStr],
+    });
+  };
 
   const handleCopyUpi = async (upiId: string) => {
     try {
@@ -277,6 +301,20 @@ export default function Checkin() {
             <StatTile icon={<IconPercent />} value={`${stats.attendancePct}%`} label="Attendance" />
           </div>
 
+          <Card className="mt-5">
+            {result.recent_visits.includes(today()) ? (
+              <div className="flex items-center justify-center gap-2 py-1 text-success">
+                <IconCheckCircle />
+                <span className="text-sm font-semibold">You're marked present today</span>
+              </div>
+            ) : (
+              <Button type="button" onClick={handleMarkAttendance} loading={markingAttendance} className="w-full">
+                Mark today's attendance
+              </Button>
+            )}
+            {attendanceError ? <p className="mt-2 text-center text-sm text-danger">{attendanceError}</p> : null}
+          </Card>
+
           {result.batch_name && result.batch_days_of_week && result.batch_start_time ? (
             <Card className="mt-5">
               <div className="mb-3 text-xs font-bold uppercase tracking-wide text-text-muted">My batch</div>
@@ -460,7 +498,8 @@ export default function Checkin() {
           <form onSubmit={handleSubmit}>
             <h1 className="text-center text-2xl font-bold text-text">My account at {studioInfo.name}</h1>
             <p className="mb-7 mt-2 text-center text-sm text-text-muted">
-              Enter your phone number and the PIN the front desk gave you.
+              Enter your phone number and PIN — or just the last 4 digits of your phone number if you haven't set
+              one.
             </p>
 
             <Field label="Phone number">
