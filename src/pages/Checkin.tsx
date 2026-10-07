@@ -32,6 +32,7 @@ interface StudioInfo {
 }
 
 interface CheckinResult {
+  member_id: string;
   member_name: string;
   recent_visits: string[];
   monthly_fee: number;
@@ -43,6 +44,9 @@ interface CheckinResult {
   batch_days_of_week: number[] | null;
   batch_start_time: string | null;
   batch_duration_minutes: number | null;
+  phone: string | null;
+  email: string | null;
+  date_of_birth: string | null;
 }
 
 export default function Checkin() {
@@ -60,6 +64,76 @@ export default function Checkin() {
   const [claimMessage, setClaimMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editPhone, setEditPhone] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editDob, setEditDob] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editUploadingPhoto, setEditUploadingPhoto] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editMessage, setEditMessage] = useState<string | null>(null);
+
+  const handleEditPhotoUpload = async (file: File) => {
+    if (!result) return;
+    setEditUploadingPhoto(true);
+    setEditError(null);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${result.member_id}/photo.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("member-photos")
+      .upload(path, file, { upsert: true, cacheControl: "3600" });
+    if (uploadError) {
+      setEditUploadingPhoto(false);
+      setEditError(`Couldn't upload photo: ${uploadError.message}`);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("member-photos").getPublicUrl(path);
+    const photoUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+    const { data, error: rpcError } = await supabase.rpc("public_update_profile", {
+      intake_slug: slug ?? "",
+      client_phone: result.phone ?? "",
+      pin,
+      new_phone: editPhone.trim(),
+      new_email: editEmail.trim() || null,
+      new_date_of_birth: editDob || null,
+      new_photo_url: photoUrl,
+    });
+    setEditUploadingPhoto(false);
+    if (rpcError || !data || data.length === 0) {
+      setEditError(rpcError?.message ?? "Couldn't save photo.");
+      return;
+    }
+    setResult({ ...result, photo_url: data[0].photo_url });
+  };
+
+  const handleProfileSave = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!result) return;
+    if (!editPhone.trim()) {
+      setEditError("Phone number cannot be blank.");
+      return;
+    }
+    setEditError(null);
+    setEditMessage(null);
+    setEditSaving(true);
+    const { data, error: rpcError } = await supabase.rpc("public_update_profile", {
+      intake_slug: slug ?? "",
+      client_phone: result.phone ?? "",
+      pin,
+      new_phone: editPhone.trim(),
+      new_email: editEmail.trim() || null,
+      new_date_of_birth: editDob || null,
+    });
+    setEditSaving(false);
+    if (rpcError || !data || data.length === 0) {
+      setEditError(rpcError?.message ?? "Couldn't save your info.");
+      return;
+    }
+    const updated = data[0];
+    setResult({ ...result, phone: updated.phone, email: updated.email, date_of_birth: updated.date_of_birth });
+    setEditMessage("Saved!");
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -170,6 +244,60 @@ export default function Checkin() {
             </Card>
           ) : null}
 
+          <Card className="mt-5">
+            <button
+              type="button"
+              onClick={() => setEditOpen((v) => !v)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <div className="text-xs font-bold uppercase tracking-wide text-text-muted">My info</div>
+              <div className="text-xs font-semibold text-accent">{editOpen ? "Close" : "Edit"}</div>
+            </button>
+
+            {editOpen ? (
+              <form onSubmit={handleProfileSave} className="mt-4">
+                <div className="mb-4 flex items-center gap-4">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+                    {result.photo_url ? (
+                      <img src={result.photo_url} alt="" className="h-full w-full object-cover" />
+                    ) : null}
+                  </div>
+                  <label className="text-sm font-semibold text-accent">
+                    {editUploadingPhoto ? "Uploading…" : result.photo_url ? "Change photo" : "Add photo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={editUploadingPhoto}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (file) handleEditPhotoUpload(file);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <Field label="Phone number">
+                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} type="tel" />
+                </Field>
+                <Field label="Email">
+                  <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
+                </Field>
+                <Field label="Date of birth">
+                  <Input value={editDob} onChange={(e) => setEditDob(e.target.value)} type="date" />
+                </Field>
+
+                {editError ? <p className="mb-3 text-center text-sm text-danger">{editError}</p> : null}
+                {editMessage ? <p className="mb-3 text-center text-sm text-success">{editMessage}</p> : null}
+
+                <Button type="submit" loading={editSaving} disabled={!editPhone.trim()} className="w-full">
+                  Save
+                </Button>
+              </form>
+            ) : null}
+          </Card>
+
           <Footer info={studioInfo} />
         </div>
       </div>
@@ -194,7 +322,11 @@ export default function Checkin() {
       setError(rpcError?.message ?? "Couldn't check you in.");
       return;
     }
-    setResult(data[0]);
+    const checkinResult = data[0];
+    setResult(checkinResult);
+    setEditPhone(checkinResult.phone ?? "");
+    setEditEmail(checkinResult.email ?? "");
+    setEditDob(checkinResult.date_of_birth ?? "");
   };
 
   const handleClaim = async (e: FormEvent) => {

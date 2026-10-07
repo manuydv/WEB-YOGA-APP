@@ -217,10 +217,9 @@ export default function ClientDetail() {
   };
 
   const handlePhotoUpload = async (file: File) => {
-    if (!studio) return;
     setUploadingPhoto(true);
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `${studio.id}/${member.id}.${ext}`;
+    const path = `${member.id}/photo.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from("member-photos")
       .upload(path, file, { upsert: true, cacheControl: "3600" });
