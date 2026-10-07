@@ -70,3 +70,18 @@ export function formatDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
+
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** `[1, 3, 5]` (Mon=1..) -> "Mon, Wed, Fri". */
+export function formatDays(daysOfWeek: number[]): string {
+  return [...daysOfWeek].sort().map((d) => DAY_ABBR[d]).join(", ");
+}
+
+/** "18:30:00" or "18:30" -> "6:30 PM". */
+export function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}

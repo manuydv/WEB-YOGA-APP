@@ -27,6 +27,13 @@ export default function More() {
             </div>
             <IconChevronRight className="text-text-muted" />
           </Link>
+          <Link to="/classes" className="flex items-center justify-between border-b border-border px-4 py-4">
+            <div>
+              <div className="text-[15px] font-semibold text-text">Classes</div>
+              <div className="mt-0.5 text-xs text-text-muted">Schedule shown to clients on check-in</div>
+            </div>
+            <IconChevronRight className="text-text-muted" />
+          </Link>
           <Link to="/settings" className="flex items-center justify-between px-4 py-4">
             <div>
               <div className="text-[15px] font-semibold text-text">Settings</div>

@@ -18,6 +18,9 @@ import ExpenseDetail from "@/pages/expenses/ExpenseDetail";
 import EmployeesList from "@/pages/employees/EmployeesList";
 import EmployeeNew from "@/pages/employees/EmployeeNew";
 import EmployeeDetail from "@/pages/employees/EmployeeDetail";
+import ClassesList from "@/pages/classes/ClassesList";
+import ClassNew from "@/pages/classes/ClassNew";
+import ClassDetail from "@/pages/classes/ClassDetail";
 import More from "@/pages/More";
 import Settings from "@/pages/Settings";
 
@@ -58,6 +61,9 @@ export default function App() {
             <Route path="/employees" element={<EmployeesList />} />
             <Route path="/employees/new" element={<EmployeeNew />} />
             <Route path="/employees/:id" element={<EmployeeDetail />} />
+            <Route path="/classes" element={<ClassesList />} />
+            <Route path="/classes/new" element={<ClassNew />} />
+            <Route path="/classes/:id" element={<ClassDetail />} />
             <Route path="/more" element={<More />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
