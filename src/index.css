@@ -1,20 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #f7f7fa;
+  --color-ink: #f4efe2;
   --color-surface: #ffffff;
-  --color-surface-raised: #efeff3;
-  --color-border: #e2e2e8;
-  --color-text: #1b1b1f;
-  --color-text-muted: #6c6c76;
-  --color-accent: #4b3fe4;
-  --color-accent-dim: rgba(75, 63, 228, 0.08);
-  --color-success: #1e9e5a;
-  --color-success-bg: #e4f7ec;
-  --color-danger: #d0342c;
-  --color-danger-bg: #fbeaea;
+  --color-surface-raised: #ece2cd;
+  --color-border: #e2d7bf;
+  --color-text: #2b241c;
+  --color-text-muted: #8a7d68;
+  --color-accent: #c1502d;
+  --color-accent-dim: rgba(193, 80, 45, 0.1);
+  --color-success: #6b7a4a;
+  --color-success-bg: rgba(107, 122, 74, 0.14);
+  --color-danger: #b23a2e;
+  --color-danger-bg: rgba(178, 58, 46, 0.1);
 
   --font-sans: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --font-heading: "Oswald", -apple-system, sans-serif;
 }
 
 html,
@@ -36,6 +38,16 @@ button,
 textarea,
 select {
   font-family: inherit;
+}
+
+h1,
+h2 {
+  font-family: var(--font-heading);
+}
+
+h1 {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Respect iOS safe areas when the PWA runs full-screen from the home screen. */
