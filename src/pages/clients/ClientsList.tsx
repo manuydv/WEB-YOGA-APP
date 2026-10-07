@@ -13,6 +13,8 @@ import type { Gender, Member, MemberStatus } from "@/types/database";
 type StatusFilter = MemberStatus | "all";
 type GenderFilter = Gender | "all";
 
+const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1, paused: 2 };
+
 export default function ClientsList() {
   const { staffUser, studio } = useAuth();
   const config = getBusinessTypeConfig(studio?.business_type ?? "yoga_studio");
@@ -75,12 +77,20 @@ export default function ClientsList() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return members.filter((m) => {
-      if (term && !m.name.toLowerCase().includes(term)) return false;
-      if (config.mode === "membership" && statusFilter !== "all" && m.status !== statusFilter) return false;
-      if (genderFilter !== "all" && m.gender !== genderFilter) return false;
-      return true;
-    });
+    return members
+      .filter((m) => {
+        if (term && !m.name.toLowerCase().includes(term)) return false;
+        if (config.mode === "membership" && statusFilter !== "all" && m.status !== statusFilter) return false;
+        if (genderFilter !== "all" && m.gender !== genderFilter) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (config.mode === "membership") {
+          const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+          if (statusDiff !== 0) return statusDiff;
+        }
+        return a.name.localeCompare(b.name);
+      });
   }, [members, search, statusFilter, genderFilter, config.mode]);
 
   return (
