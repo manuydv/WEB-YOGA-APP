@@ -57,7 +57,7 @@ export function Button({ variant = "primary", loading, disabled, className = "",
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return (
+  const input = (
     <input
       {...props}
       className={`w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-text placeholder:text-text-muted focus:border-accent focus:outline-none ${
@@ -65,6 +65,14 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
       }`}
     />
   );
+  // iOS Safari can render a type="date" input wider than its box,
+  // overflowing the page — a wrapping overflow-hidden div clips it
+  // reliably, since CSS width/overflow on the input itself doesn't
+  // contain the native widget's own internal rendering.
+  if (props.type === "date") {
+    return <div className="w-full overflow-hidden rounded-xl">{input}</div>;
+  }
+  return input;
 }
 
 export function StatTile({ icon, value, label }: { icon: ReactNode; value: ReactNode; label: string }) {
