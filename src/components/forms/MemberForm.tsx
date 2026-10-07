@@ -3,7 +3,7 @@ import { Field, Segmented } from "@/components/Field";
 import { Input } from "@/components/ui";
 import { formatDays, formatTime, isValidDate } from "@/lib/dates";
 import type { TrackingMode } from "@/lib/businessTypes";
-import type { Class, Gender, MemberStatus } from "@/types/database";
+import type { Class, Gender } from "@/types/database";
 
 export interface MemberFormValues {
   name: string;
@@ -13,7 +13,6 @@ export interface MemberFormValues {
   dateOfBirth: string;
   joinedOn: string;
   monthlyFee: string;
-  status: MemberStatus;
   classId: string;
 }
 
@@ -130,17 +129,6 @@ export default function MemberForm({
               inputMode="decimal"
             />
           </Field>
-
-          <Segmented
-            label="Status"
-            value={values.status}
-            onChange={(v) => onChange("status", v)}
-            options={[
-              { label: "Active", value: "active" },
-              { label: "Paused", value: "paused" },
-              { label: "Inactive", value: "inactive" },
-            ]}
-          />
 
           {classes.length > 0 ? (
             <Field label="Batch">

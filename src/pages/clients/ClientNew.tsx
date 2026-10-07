@@ -19,7 +19,6 @@ const initialValues: MemberFormValues = {
   dateOfBirth: "",
   joinedOn: today(),
   monthlyFee: "",
-  status: "active",
   classId: "",
 };
 
@@ -65,7 +64,6 @@ export default function ClientNew() {
       date_of_birth: values.dateOfBirth || null,
       joined_on: values.joinedOn,
       monthly_fee: config.mode === "membership" ? Number(values.monthlyFee) : 0,
-      status: config.mode === "membership" ? values.status : "active",
       class_id: config.mode === "membership" ? values.classId || null : null,
     });
     setSaving(false);

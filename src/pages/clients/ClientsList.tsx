@@ -14,7 +14,7 @@ type StatusFilter = MemberStatus | "all";
 type GenderFilter = Gender | "all";
 type PaymentFilter = "all" | "paid" | "unpaid";
 
-const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1, paused: 2 };
+const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1 };
 
 function Avatar({ url }: { url: string | null }) {
   return (
@@ -129,7 +129,6 @@ export default function ClientsList() {
               options={[
                 { label: "All", value: "all" },
                 { label: "Active", value: "active" },
-                { label: "Paused", value: "paused" },
                 { label: "Inactive", value: "inactive" },
               ]}
             />
