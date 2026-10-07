@@ -94,13 +94,25 @@ export default function Checkin() {
     try {
       const res = await fetch(qrUrl);
       const blob = await res.blob();
+
+      // On a phone, the share sheet's "Save Image" option saves straight to
+      // the photo gallery — a plain download usually lands in a Downloads
+      // folder instead. Fall back to that download where sharing isn't
+      // available (e.g. desktop browsers).
+      const file = new File([blob], "payment-qr.png", { type: blob.type || "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Payment QR code" });
+        return;
+      }
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "payment-qr.png";
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") return;
       window.open(qrUrl, "_blank");
     }
   };
@@ -375,7 +387,7 @@ export default function Checkin() {
                         onClick={() => handleDownloadQr(studioInfo.payment_qr_url!)}
                         className="mt-3 text-sm font-semibold text-accent"
                       >
-                        Download QR code
+                        Save QR code
                       </button>
                     </div>
                   ) : null}
