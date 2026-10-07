@@ -6,6 +6,7 @@ import { Button, Input } from "@/components/ui";
 import { Field } from "@/components/Field";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
+import BrandHeader from "@/components/BrandHeader";
 import type { BusinessType } from "@/types/database";
 
 interface StudioInfo {
@@ -54,22 +55,28 @@ export default function Intake() {
 
   if (notFound || !studioInfo) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-ink px-6 text-center">
-        <h1 className="text-xl font-bold text-text">Link not active</h1>
-        <p className="mt-2 text-sm text-text-muted">This sign-up link isn't available anymore. Ask the front desk.</p>
+      <div className="min-h-screen bg-ink">
+        <BrandHeader />
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <h1 className="text-xl font-bold text-text">Link not active</h1>
+          <p className="mt-2 text-sm text-text-muted">This sign-up link isn't available anymore. Ask the front desk.</p>
+        </div>
       </div>
     );
   }
 
   if (done) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-ink px-6 text-center">
-        <h1 className="text-xl font-bold text-text">You're all set!</h1>
-        <p className="mt-2 text-sm text-text-muted">
-          Thanks, {name.trim()}. {studioInfo.name} has your details.
-        </p>
-        <div className="w-full max-w-sm">
-          <Footer info={studioInfo} />
+      <div className="min-h-screen bg-ink">
+        <BrandHeader />
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <h1 className="text-xl font-bold text-text">You're all set!</h1>
+          <p className="mt-2 text-sm text-text-muted">
+            Thanks, {name.trim()}. {studioInfo.name} has your details.
+          </p>
+          <div className="w-full max-w-sm">
+            <Footer info={studioInfo} />
+          </div>
         </div>
       </div>
     );
@@ -98,7 +105,9 @@ export default function Intake() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ink px-6">
+    <div className="flex min-h-screen flex-col bg-ink">
+      <BrandHeader />
+      <div className="flex flex-1 items-center justify-center px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
         <h1 className="text-center text-2xl font-bold text-text">Welcome to {studioInfo.name}</h1>
         <p className="mb-7 mt-2 text-center text-sm text-text-muted">
@@ -123,6 +132,7 @@ export default function Intake() {
 
         <Footer info={studioInfo} />
       </form>
+      </div>
     </div>
   );
 }

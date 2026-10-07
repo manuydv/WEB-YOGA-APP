@@ -11,6 +11,7 @@ import { Field } from "@/components/Field";
 import { IconCalendarCheck, IconClock, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
+import BrandHeader from "@/components/BrandHeader";
 import type { BusinessType, MemberStatus } from "@/types/database";
 
 interface ScheduleItem {
@@ -190,9 +191,12 @@ export default function Checkin() {
 
   if (notFound || !studioInfo) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-ink px-6 text-center">
-        <h1 className="text-xl font-bold text-text">Check-in not active</h1>
-        <p className="mt-2 text-sm text-text-muted">This link isn't set up for check-in. Ask the front desk.</p>
+      <div className="min-h-screen bg-ink">
+        <BrandHeader />
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <h1 className="text-xl font-bold text-text">Check-in not active</h1>
+          <p className="mt-2 text-sm text-text-muted">This link isn't set up for check-in. Ask the front desk.</p>
+        </div>
       </div>
     );
   }
@@ -219,7 +223,9 @@ export default function Checkin() {
   if (result) {
     const stats = computeCheckinStats(result.recent_visits, today());
     return (
-      <div className="flex min-h-screen flex-col items-center bg-ink px-6 py-10">
+      <div className="min-h-screen bg-ink">
+        <BrandHeader />
+        <div className="flex flex-col items-center px-6 py-10">
         <div className="w-full max-w-sm">
           <Card className="mb-3">
             <div className="mb-3 flex items-center justify-between">
@@ -381,6 +387,7 @@ export default function Checkin() {
 
           <Footer info={studioInfo} />
         </div>
+        </div>
       </div>
     );
   }
@@ -435,7 +442,9 @@ export default function Checkin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ink px-6 py-10">
+    <div className="flex min-h-screen flex-col bg-ink">
+      <BrandHeader />
+      <div className="flex flex-1 items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm">
         {mode === "checkin" ? (
           <form onSubmit={handleSubmit}>
@@ -507,6 +516,7 @@ export default function Checkin() {
         {ScheduleCard}
 
         <Footer info={studioInfo} />
+      </div>
       </div>
     </div>
   );
