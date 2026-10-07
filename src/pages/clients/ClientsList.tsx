@@ -30,6 +30,11 @@ export default function ClientsList() {
   const load = useCallback(async () => {
     if (!staffUser) return;
     setError(null);
+
+    if (config.mode === "membership") {
+      await supabase.rpc("sync_member_statuses");
+    }
+
     const membersRes = await supabase.from("members").select("*").order("name", { ascending: true });
 
     if (membersRes.error) {
