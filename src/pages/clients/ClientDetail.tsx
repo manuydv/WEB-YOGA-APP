@@ -19,7 +19,7 @@ import {
   today,
 } from "@/lib/dates";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
-import type { Member, Payment, Visit } from "@/types/database";
+import type { Class, Member, Payment, Visit } from "@/types/database";
 
 const HISTORY_MONTHS = 6;
 const VISIT_HISTORY_LIMIT = 10;
@@ -33,6 +33,7 @@ function toFormValues(member: Member): MemberFormValues {
     joinedOn: member.joined_on,
     monthlyFee: String(member.monthly_fee),
     status: member.status,
+    classId: member.class_id ?? "",
   };
 }
 
@@ -50,6 +51,7 @@ export default function ClientDetail() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [visitService, setVisitService] = useState("");
   const [visitAmount, setVisitAmount] = useState("");
+  const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -57,6 +59,7 @@ export default function ClientDetail() {
   const [markingPaid, setMarkingPaid] = useState(false);
   const [loggingVisit, setLoggingVisit] = useState(false);
   const [savingPin, setSavingPin] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -79,6 +82,9 @@ export default function ClientDetail() {
         map[payment.month] = payment;
       }
       setPaymentsByMonth(map);
+
+      const classesRes = await supabase.from("classes").select("*").order("start_time", { ascending: true });
+      setClasses(classesRes.data ?? []);
     } else {
       const visitsRes = await supabase
         .from("visits")
@@ -127,6 +133,7 @@ export default function ClientDetail() {
         joined_on: values.joinedOn,
         monthly_fee: config.mode === "membership" ? Number(values.monthlyFee) : 0,
         status: config.mode === "membership" ? values.status : "active",
+        class_id: config.mode === "membership" ? values.classId || null : null,
       })
       .eq("id", member.id);
     setSaving(false);
@@ -209,6 +216,30 @@ export default function ClientDetail() {
     await load();
   };
 
+  const handlePhotoUpload = async (file: File) => {
+    if (!studio) return;
+    setUploadingPhoto(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${studio.id}/${member.id}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("member-photos")
+      .upload(path, file, { upsert: true, cacheControl: "3600" });
+    if (uploadError) {
+      setUploadingPhoto(false);
+      window.alert(`Couldn't upload photo: ${uploadError.message}`);
+      return;
+    }
+    const { data } = supabase.storage.from("member-photos").getPublicUrl(path);
+    const photoUrl = `${data.publicUrl}?v=${Date.now()}`;
+    const { error: updateError } = await supabase.from("members").update({ photo_url: photoUrl }).eq("id", member.id);
+    setUploadingPhoto(false);
+    if (updateError) {
+      window.alert(`Couldn't save photo: ${updateError.message}`);
+      return;
+    }
+    await load();
+  };
+
   const checkinPinCard = (
     <Card className="mb-6">
       <div className="text-[15px] font-bold text-text">Check-in PIN</div>
@@ -239,7 +270,16 @@ export default function ClientDetail() {
   const detailsForm = (
     <>
       <h2 className="mb-2.5 mt-6 text-[15px] font-bold text-text">{config.personLabelSingular} details</h2>
-      <MemberForm values={values} errors={errors} mode={config.mode} onChange={handleChange} />
+      <MemberForm
+        values={values}
+        errors={errors}
+        mode={config.mode}
+        onChange={handleChange}
+        classes={classes}
+        photoUrl={member.photo_url}
+        onPhotoUpload={handlePhotoUpload}
+        photoUploading={uploadingPhoto}
+      />
       {savedMessage ? <p className="mb-3 text-center text-sm text-success">{savedMessage}</p> : null}
       <Button type="submit" loading={saving} className="w-full">
         Save changes

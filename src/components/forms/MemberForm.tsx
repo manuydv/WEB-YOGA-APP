@@ -1,8 +1,9 @@
+import type { ChangeEvent } from "react";
 import { Field, Segmented } from "@/components/Field";
 import { Input } from "@/components/ui";
-import { isValidDate } from "@/lib/dates";
+import { formatDays, formatTime, isValidDate } from "@/lib/dates";
 import type { TrackingMode } from "@/lib/businessTypes";
-import type { Gender, MemberStatus } from "@/types/database";
+import type { Class, Gender, MemberStatus } from "@/types/database";
 
 export interface MemberFormValues {
   name: string;
@@ -12,6 +13,7 @@ export interface MemberFormValues {
   joinedOn: string;
   monthlyFee: string;
   status: MemberStatus;
+  classId: string;
 }
 
 export interface MemberFormErrors {
@@ -38,14 +40,44 @@ export default function MemberForm({
   errors,
   mode,
   onChange,
+  classes = [],
+  photoUrl,
+  onPhotoUpload,
+  photoUploading,
 }: {
   values: MemberFormValues;
   errors: MemberFormErrors;
   mode: TrackingMode;
   onChange: <K extends keyof MemberFormValues>(key: K, value: MemberFormValues[K]) => void;
+  classes?: Class[];
+  photoUrl?: string | null;
+  onPhotoUpload?: (file: File) => void;
+  photoUploading?: boolean;
 }) {
+  const handlePhotoInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file && onPhotoUpload) onPhotoUpload(file);
+  };
+
   return (
     <div>
+      {onPhotoUpload ? (
+        <div className="mb-5 flex items-center gap-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+            {photoUrl ? (
+              <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">No photo</div>
+            )}
+          </div>
+          <label className="text-sm font-semibold text-accent">
+            {photoUploading ? "Uploading…" : photoUrl ? "Change photo" : "Add photo"}
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoInput} disabled={photoUploading} />
+          </label>
+        </div>
+      ) : null}
+
       <Field label="Name" error={errors.name}>
         <Input value={values.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Full name" />
       </Field>
@@ -104,6 +136,45 @@ export default function MemberForm({
               { label: "Inactive", value: "inactive" },
             ]}
           />
+
+          {classes.length > 0 ? (
+            <Field label="Batch">
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => onChange("classId", "")}
+                  className={`rounded-xl border p-3 text-left ${
+                    values.classId === "" ? "border-accent bg-accent-dim" : "border-border bg-surface"
+                  }`}
+                >
+                  <div className={`text-[15px] font-semibold ${values.classId === "" ? "text-accent" : "text-text"}`}>
+                    No batch
+                  </div>
+                </button>
+                {classes.map((c) => {
+                  const selected = values.classId === c.id;
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => onChange("classId", c.id)}
+                      className={`rounded-xl border p-3 text-left ${
+                        selected ? "border-accent bg-accent-dim" : "border-border bg-surface"
+                      }`}
+                    >
+                      <div className={`text-[15px] font-semibold ${selected ? "text-accent" : "text-text"}`}>
+                        {c.name}
+                      </div>
+                      <div className={`mt-0.5 text-xs ${selected ? "text-accent/80" : "text-text-muted"}`}>
+                        {formatDays(c.days_of_week)} · {formatTime(c.start_time)}
+                        {c.instructor_name ? ` · ${c.instructor_name}` : ""}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          ) : null}
         </>
       ) : null}
     </div>

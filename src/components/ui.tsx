@@ -80,3 +80,25 @@ export function StatTile({ icon, value, label }: { icon: ReactNode; value: React
 export function SectionLabel({ children }: { children: ReactNode }) {
   return <div className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-text-muted">{children}</div>;
 }
+
+const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+export function DayPills({ days }: { days: number[] }) {
+  return (
+    <div className="flex gap-1.5">
+      {DAY_LETTERS.map((letter, i) => {
+        const active = days.includes(i);
+        return (
+          <div
+            key={i}
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+              active ? "bg-accent text-white" : "bg-surface-raised text-text-muted"
+            }`}
+          >
+            {letter}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

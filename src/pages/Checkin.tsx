@@ -6,7 +6,7 @@ import { computeCheckinStats } from "@/lib/checkin";
 import { formatDays, formatTime, today } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
-import { Badge, Button, Card, Input, StatTile } from "@/components/ui";
+import { Badge, Button, Card, DayPills, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
 import { IconCalendarCheck, IconClock, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -37,6 +37,12 @@ interface CheckinResult {
   monthly_fee: number;
   member_status: MemberStatus;
   this_month_paid: boolean;
+  photo_url: string | null;
+  batch_name: string | null;
+  batch_instructor_name: string | null;
+  batch_days_of_week: number[] | null;
+  batch_start_time: string | null;
+  batch_duration_minutes: number | null;
 }
 
 export default function Checkin() {
@@ -111,8 +117,23 @@ export default function Checkin() {
     return (
       <div className="flex min-h-screen flex-col items-center bg-ink px-6 py-10">
         <div className="w-full max-w-sm">
-          <h1 className="text-center text-2xl font-bold text-text">Welcome back, {result.member_name.split(" ")[0]}!</h1>
-          <p className="mb-6 mt-1 text-center text-sm text-text-muted">You're checked in at {studioInfo.name}.</p>
+          <Card className="mb-3">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Membership</div>
+              <Badge tone="accent">Member</Badge>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+                {result.photo_url ? (
+                  <img src={result.photo_url} alt="" className="h-full w-full object-cover" />
+                ) : null}
+              </div>
+              <div>
+                <div className="font-heading text-lg text-text">{result.member_name}</div>
+                <div className="text-xs text-text-muted">{studioInfo.name}</div>
+              </div>
+            </div>
+          </Card>
 
           {config.mode === "membership" ? (
             <Card className="mb-3" highlight>
@@ -135,7 +156,19 @@ export default function Checkin() {
             <StatTile icon={<IconClock />} value={stats.totalVisits} label="Visits (10 wks)" />
           </div>
 
-          {ScheduleCard}
+          {result.batch_name && result.batch_days_of_week && result.batch_start_time ? (
+            <Card className="mt-5">
+              <div className="mb-3 text-xs font-bold uppercase tracking-wide text-text-muted">My batch</div>
+              <div className="text-[15px] font-semibold text-text">{result.batch_name}</div>
+              <div className="mt-1 text-xs text-text-muted">
+                {formatTime(result.batch_start_time)} · {result.batch_duration_minutes} min
+                {result.batch_instructor_name ? ` · ${result.batch_instructor_name}` : ""}
+              </div>
+              <div className="mt-3">
+                <DayPills days={result.batch_days_of_week} />
+              </div>
+            </Card>
+          ) : null}
 
           <Footer info={studioInfo} />
         </div>
