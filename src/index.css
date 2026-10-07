@@ -25,12 +25,25 @@ body,
   height: 100%;
 }
 
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-ink);
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* iOS Safari can give type="date" inputs an intrinsic width wider than
+   their box, pushing the whole page into horizontal scroll. */
+input[type="date"] {
+  max-width: 100%;
+  min-width: 0;
 }
 
 input,
