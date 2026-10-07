@@ -24,6 +24,15 @@ export function IconPeople(props: IconProps) {
   );
 }
 
+export function IconChartPie(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3a9 9 0 1 0 9 9h-9Z" />
+      <path d="M15 3.5A9 9 0 0 1 20.5 9H15Z" />
+    </svg>
+  );
+}
+
 export function IconChart(props: IconProps) {
   return (
     <svg {...base} {...props}>

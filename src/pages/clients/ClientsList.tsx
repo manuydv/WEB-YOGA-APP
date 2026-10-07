@@ -15,6 +15,14 @@ type GenderFilter = Gender | "all";
 
 const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1, paused: 2 };
 
+function Avatar({ url }: { url: string | null }) {
+  return (
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : null}
+    </div>
+  );
+}
+
 export default function ClientsList() {
   const { staffUser, studio } = useAuth();
   const config = getBusinessTypeConfig(studio?.business_type ?? "yoga_studio");
@@ -149,8 +157,9 @@ export default function ClientsList() {
                 <Link
                   key={item.id}
                   to={`/clients/${item.id}`}
-                  className="mb-2.5 flex items-center justify-between rounded-2xl border border-border bg-surface p-3.5"
+                  className="mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"
                 >
+                  <Avatar url={item.photo_url} />
                   <div className="min-w-0 flex-1 pr-3">
                     <div className="truncate text-[15px] font-semibold text-text">{item.name}</div>
                     <div className="mt-0.5 text-xs text-text-muted">{item.phone ?? "No phone on file"}</div>
@@ -165,8 +174,9 @@ export default function ClientsList() {
               <Link
                 key={item.id}
                 to={`/clients/${item.id}`}
-                className="mb-2.5 flex items-center justify-between rounded-2xl border border-border bg-surface p-3.5"
+                className="mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"
               >
+                <Avatar url={item.photo_url} />
                 <div className="min-w-0 flex-1 pr-3">
                   <div className="truncate text-[15px] font-semibold text-text">{item.name}</div>
                   <div className="mt-0.5 text-xs capitalize text-text-muted">
