@@ -196,7 +196,11 @@ export default function ClientDetail() {
   };
 
   const handleSetPin = async () => {
-    const pin = String(Math.floor(1000 + Math.random() * 9000));
+    // A 6-digit PIN from a CSPRNG, not Math.random() — paired with the
+    // lockout in public_check_in, this makes brute-forcing impractical.
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const pin = String(100000 + (buf[0] % 900000));
     setSavingPin(true);
     const { error: pinError } = await supabase.from("members").update({ check_in_pin: pin }).eq("id", member.id);
     setSavingPin(false);
