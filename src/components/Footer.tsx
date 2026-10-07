@@ -13,7 +13,7 @@ export default function Footer({ info }: { info: FooterInfo }) {
   if (!hasContent) return null;
 
   return (
-    <footer className="-mx-6 mt-10 rounded-2xl bg-[#7A3626] px-6 py-6 text-center text-[#F4EFE2]">
+    <footer className="mt-10 w-full bg-[#7A3626] px-6 py-6 text-center text-[#F4EFE2]">
       <div className="font-heading text-lg uppercase tracking-wide">{info.name}</div>
       <div className="mt-3 flex flex-col gap-1 text-sm text-[#F4EFE2]/90">
         {info.contact_phone_1 ? (

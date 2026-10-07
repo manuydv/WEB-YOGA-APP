@@ -384,10 +384,9 @@ export default function Checkin() {
               ) : null}
             </Card>
           ) : null}
-
-          <Footer info={studioInfo} />
         </div>
         </div>
+        <Footer info={studioInfo} />
       </div>
     );
   }
@@ -514,10 +513,9 @@ export default function Checkin() {
         )}
 
         {ScheduleCard}
-
-        <Footer info={studioInfo} />
       </div>
       </div>
+      <Footer info={studioInfo} />
     </div>
   );
 }

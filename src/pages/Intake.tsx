@@ -67,17 +67,15 @@ export default function Intake() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-ink">
+      <div className="flex min-h-screen flex-col bg-ink">
         <BrandHeader />
-        <div className="flex flex-col items-center px-6 py-10 text-center">
+        <div className="flex flex-1 flex-col items-center px-6 py-10 text-center">
           <h1 className="text-xl font-bold text-text">You're all set!</h1>
           <p className="mt-2 text-sm text-text-muted">
             Thanks, {name.trim()}. {studioInfo.name} has your details.
           </p>
-          <div className="w-full max-w-sm">
-            <Footer info={studioInfo} />
-          </div>
         </div>
+        <Footer info={studioInfo} />
       </div>
     );
   }
@@ -129,10 +127,9 @@ export default function Intake() {
         <Button type="submit" loading={submitting} disabled={!name.trim()} className="w-full">
           Submit
         </Button>
-
-        <Footer info={studioInfo} />
       </form>
       </div>
+      <Footer info={studioInfo} />
     </div>
   );
 }
