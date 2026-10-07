@@ -34,6 +34,9 @@ function SettingsForm() {
   const [contactEmail, setContactEmail] = useState(studio!.contact_email ?? "");
   const [contactAddress, setContactAddress] = useState(studio!.contact_address ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(studio!.website_url ?? "");
+  const [upiId, setUpiId] = useState(studio!.upi_id ?? "");
+  const [paymentQrUrl, setPaymentQrUrl] = useState(studio!.payment_qr_url);
+  const [uploadingQr, setUploadingQr] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +76,7 @@ function SettingsForm() {
         contact_email: contactEmail.trim() || null,
         contact_address: contactAddress.trim() || null,
         website_url: websiteUrl.trim() || null,
+        upi_id: upiId.trim() || null,
       })
       .eq("id", studio!.id);
     setSaving(false);
@@ -83,6 +87,31 @@ function SettingsForm() {
     }
     await refreshStudio();
     setSavedMessage("Shop settings updated.");
+  };
+
+  const handleQrUpload = async (file: File) => {
+    setUploadingQr(true);
+    setError(null);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${studio!.id}/qr.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("payment-qr")
+      .upload(path, file, { upsert: true, cacheControl: "3600" });
+    if (uploadError) {
+      setUploadingQr(false);
+      setError(`Couldn't upload QR code: ${uploadError.message}`);
+      return;
+    }
+    const { data } = supabase.storage.from("payment-qr").getPublicUrl(path);
+    const url = `${data.publicUrl}?v=${Date.now()}`;
+    const { error: updateError } = await supabase.from("studios").update({ payment_qr_url: url }).eq("id", studio!.id);
+    setUploadingQr(false);
+    if (updateError) {
+      setError(`Couldn't save QR code: ${updateError.message}`);
+      return;
+    }
+    setPaymentQrUrl(url);
+    await refreshStudio();
   };
 
   const intakeConfig = getBusinessTypeConfig(businessType);
@@ -124,6 +153,39 @@ function SettingsForm() {
               type="url"
               placeholder="https://yourstudio.com"
             />
+          </Field>
+        </Card>
+
+        <SectionLabel>Payment options</SectionLabel>
+        <Card className="mb-4">
+          <p className="mb-3 text-xs leading-relaxed text-text-muted">
+            Shown to a member under "My info" on the check-in page as "Make payment". Leave blank to hide it.
+          </p>
+          <Field label="UPI ID">
+            <Input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="yourstudio@upi" />
+          </Field>
+          <Field label="Payment QR code">
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-surface-raised">
+                {paymentQrUrl ? (
+                  <img src={paymentQrUrl} alt="" className="h-full w-full object-contain" />
+                ) : null}
+              </div>
+              <label className="text-sm font-semibold text-accent">
+                {uploadingQr ? "Uploading…" : paymentQrUrl ? "Change QR code" : "Add QR code"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingQr}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) handleQrUpload(file);
+                  }}
+                />
+              </label>
+            </div>
           </Field>
         </Card>
 

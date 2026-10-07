@@ -29,6 +29,8 @@ interface StudioInfo {
   contact_email: string | null;
   contact_address: string | null;
   website_url: string | null;
+  upi_id: string | null;
+  payment_qr_url: string | null;
 }
 
 interface CheckinResult {
@@ -73,6 +75,34 @@ export default function Checkin() {
   const [editUploadingPhoto, setEditUploadingPhoto] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editMessage, setEditMessage] = useState<string | null>(null);
+
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+
+  const handleCopyUpi = async (upiId: string) => {
+    try {
+      await navigator.clipboard.writeText(upiId);
+      setCopyMessage("Copied!");
+    } catch {
+      setCopyMessage("Couldn't copy — select and copy manually.");
+    }
+    setTimeout(() => setCopyMessage(null), 2000);
+  };
+
+  const handleDownloadQr = async (qrUrl: string) => {
+    try {
+      const res = await fetch(qrUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "payment-qr.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(qrUrl, "_blank");
+    }
+  };
 
   const handleEditPhotoUpload = async (file: File) => {
     if (!result) return;
@@ -297,6 +327,57 @@ export default function Checkin() {
               </form>
             ) : null}
           </Card>
+
+          {studioInfo.upi_id || studioInfo.payment_qr_url ? (
+            <Card className="mt-5">
+              <button
+                type="button"
+                onClick={() => setPaymentOpen((v) => !v)}
+                className="flex w-full items-center justify-between text-left"
+              >
+                <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Make payment</div>
+                <div className="text-xs font-semibold text-accent">{paymentOpen ? "Close" : "Pay"}</div>
+              </button>
+
+              {paymentOpen ? (
+                <div className="mt-4">
+                  {studioInfo.upi_id ? (
+                    <div className="mb-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">UPI ID</div>
+                      <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-surface-raised px-3.5 py-3">
+                        <span className="truncate text-sm font-semibold text-text">{studioInfo.upi_id}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyUpi(studioInfo.upi_id!)}
+                          className="ml-3 shrink-0 text-sm font-semibold text-accent"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      {copyMessage ? <p className="mt-1.5 text-xs text-success">{copyMessage}</p> : null}
+                    </div>
+                  ) : null}
+
+                  {studioInfo.payment_qr_url ? (
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={studioInfo.payment_qr_url}
+                        alt="Payment QR code"
+                        className="h-48 w-48 rounded-xl border border-border object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadQr(studioInfo.payment_qr_url!)}
+                        className="mt-3 text-sm font-semibold text-accent"
+                      >
+                        Download QR code
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
 
           <Footer info={studioInfo} />
         </div>
