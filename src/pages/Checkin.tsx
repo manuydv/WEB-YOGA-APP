@@ -8,7 +8,7 @@ import { formatMoney } from "@/lib/money";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { Badge, Button, Card, DayPills, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
-import { IconCalendarCheck, IconClock, IconFlame, IconPercent } from "@/components/icons";
+import { IconCalendarCheck, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
@@ -259,11 +259,10 @@ export default function Checkin() {
             </Card>
           ) : null}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <StatTile icon={<IconFlame />} value={stats.weekStreak} label="Week streak" />
             <StatTile icon={<IconCalendarCheck />} value={stats.thisWeekVisits} label="This week" />
             <StatTile icon={<IconPercent />} value={`${stats.attendancePct}%`} label="Attendance" />
-            <StatTile icon={<IconClock />} value={stats.totalVisits} label="Visits (10 wks)" />
           </div>
 
           {result.batch_name && result.batch_days_of_week && result.batch_start_time ? (

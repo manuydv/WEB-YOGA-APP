@@ -22,7 +22,6 @@ export interface CheckinStats {
   thisWeekVisits: number;
   /** % of the last `windowWeeks` weeks (including this one) with at least one visit. */
   attendancePct: number;
-  totalVisits: number;
 }
 
 const ATTENDANCE_WINDOW_WEEKS = 10;
@@ -68,6 +67,5 @@ export function computeCheckinStats(recentVisits: string[], today: string): Chec
     weekStreak,
     thisWeekVisits,
     attendancePct,
-    totalVisits: visitDays.size,
   };
 }
