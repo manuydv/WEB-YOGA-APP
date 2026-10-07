@@ -10,6 +10,7 @@ import { Badge, Button, Card, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
 import { IconCalendarCheck, IconClock, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
+import Footer from "@/components/Footer";
 import type { BusinessType, MemberStatus } from "@/types/database";
 
 interface ScheduleItem {
@@ -18,6 +19,16 @@ interface ScheduleItem {
   days_of_week: number[];
   start_time: string;
   duration_minutes: number;
+}
+
+interface StudioInfo {
+  name: string;
+  business_type: BusinessType;
+  contact_phone_1: string | null;
+  contact_phone_2: string | null;
+  contact_email: string | null;
+  contact_address: string | null;
+  website_url: string | null;
 }
 
 interface CheckinResult {
@@ -30,7 +41,7 @@ interface CheckinResult {
 
 export default function Checkin() {
   const { slug } = useParams<{ slug: string }>();
-  const [studioInfo, setStudioInfo] = useState<{ name: string; business_type: BusinessType } | null>(null);
+  const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -125,6 +136,8 @@ export default function Checkin() {
           </div>
 
           {ScheduleCard}
+
+          <Footer info={studioInfo} />
         </div>
       </div>
     );
@@ -246,6 +259,8 @@ export default function Checkin() {
         )}
 
         {ScheduleCard}
+
+        <Footer info={studioInfo} />
       </div>
     </div>
   );

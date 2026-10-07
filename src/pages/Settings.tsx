@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, SectionLabel } from "@/components/ui";
 import { Field } from "@/components/Field";
 import BusinessTypePicker from "@/components/BusinessTypePicker";
 import TopBar from "@/components/TopBar";
@@ -29,6 +29,11 @@ function SettingsForm() {
   const [intakeEnabled, setIntakeEnabled] = useState(studio!.public_intake_enabled);
   const [intakeSlug, setIntakeSlug] = useState(studio!.public_intake_slug);
   const [checkinEnabled, setCheckinEnabled] = useState(studio!.public_checkin_enabled);
+  const [contactPhone1, setContactPhone1] = useState(studio!.contact_phone_1 ?? "");
+  const [contactPhone2, setContactPhone2] = useState(studio!.contact_phone_2 ?? "");
+  const [contactEmail, setContactEmail] = useState(studio!.contact_email ?? "");
+  const [contactAddress, setContactAddress] = useState(studio!.contact_address ?? "");
+  const [websiteUrl, setWebsiteUrl] = useState(studio!.website_url ?? "");
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +68,11 @@ function SettingsForm() {
         public_intake_enabled: intakeEnabled,
         public_checkin_enabled: checkinEnabled,
         public_intake_slug: intakeEnabled || checkinEnabled ? intakeSlug : studio!.public_intake_slug,
+        contact_phone_1: contactPhone1.trim() || null,
+        contact_phone_2: contactPhone2.trim() || null,
+        contact_email: contactEmail.trim() || null,
+        contact_address: contactAddress.trim() || null,
+        website_url: websiteUrl.trim() || null,
       })
       .eq("id", studio!.id);
     setSaving(false);
@@ -84,6 +94,38 @@ function SettingsForm() {
       <TopBar title="Settings" />
       <form onSubmit={handleSave} className="p-4 pb-10">
         <BusinessTypePicker value={businessType} onChange={setBusinessType} />
+
+        <SectionLabel>Footer contact info</SectionLabel>
+        <Card className="mb-4">
+          <p className="mb-3 text-xs leading-relaxed text-text-muted">
+            Shown at the bottom of your public check-in and sign-up pages. Leave anything blank to hide it.
+          </p>
+          <Field label="Phone number 1">
+            <Input value={contactPhone1} onChange={(e) => setContactPhone1(e.target.value)} type="tel" />
+          </Field>
+          <Field label="Phone number 2 (optional)">
+            <Input value={contactPhone2} onChange={(e) => setContactPhone2(e.target.value)} type="tel" />
+          </Field>
+          <Field label="Email">
+            <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} type="email" />
+          </Field>
+          <Field label="Address">
+            <textarea
+              value={contactAddress}
+              onChange={(e) => setContactAddress(e.target.value)}
+              rows={2}
+              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
+            />
+          </Field>
+          <Field label="Website">
+            <Input
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              type="url"
+              placeholder="https://yourstudio.com"
+            />
+          </Field>
+        </Card>
 
         <Card className="mb-4">
           <div className="flex items-center justify-between">

@@ -5,11 +5,22 @@ import { supabase } from "@/lib/supabase";
 import { Button, Input } from "@/components/ui";
 import { Field } from "@/components/Field";
 import LoadingScreen from "@/components/LoadingScreen";
+import Footer from "@/components/Footer";
 import type { BusinessType } from "@/types/database";
+
+interface StudioInfo {
+  name: string;
+  business_type: BusinessType;
+  contact_phone_1: string | null;
+  contact_phone_2: string | null;
+  contact_email: string | null;
+  contact_address: string | null;
+  website_url: string | null;
+}
 
 export default function Intake() {
   const { slug } = useParams<{ slug: string }>();
-  const [studioInfo, setStudioInfo] = useState<{ name: string; business_type: BusinessType } | null>(null);
+  const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -57,6 +68,9 @@ export default function Intake() {
         <p className="mt-2 text-sm text-text-muted">
           Thanks, {name.trim()}. {studioInfo.name} has your details.
         </p>
+        <div className="w-full max-w-sm">
+          <Footer info={studioInfo} />
+        </div>
       </div>
     );
   }
@@ -106,6 +120,8 @@ export default function Intake() {
         <Button type="submit" loading={submitting} disabled={!name.trim()} className="w-full">
           Submit
         </Button>
+
+        <Footer info={studioInfo} />
       </form>
     </div>
   );
