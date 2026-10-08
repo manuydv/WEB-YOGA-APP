@@ -8,11 +8,12 @@ import { Badge, Input } from "@/components/ui";
 import { Segmented } from "@/components/Field";
 import { IconPlus } from "@/components/icons";
 import TopBar from "@/components/TopBar";
-import type { Gender, Member, MemberStatus } from "@/types/database";
+import type { Class, Gender, Member, MemberStatus } from "@/types/database";
 
 type StatusFilter = MemberStatus | "all";
 type GenderFilter = Gender | "all";
 type PaymentFilter = "all" | "paid" | "unpaid";
+type BatchFilter = "all" | "none" | string;
 
 const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1 };
 
@@ -30,12 +31,14 @@ export default function ClientsList() {
   const reminderDays = studio?.reminder_days ?? 30;
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [paidMemberIds, setPaidMemberIds] = useState<Set<string>>(new Set());
   const [lastVisitByMember, setLastVisitByMember] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
+  const [batchFilter, setBatchFilter] = useState<BatchFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,13 +59,15 @@ export default function ClientsList() {
     }
 
     if (config.mode === "membership") {
-      const paymentsRes = await supabase
-        .from("payments")
-        .select("member_id")
-        .eq("month", currentMonth())
-        .eq("paid", true);
+      const [paymentsRes, classesRes] = await Promise.all([
+        supabase.from("payments").select("member_id").eq("month", currentMonth()).eq("paid", true),
+        supabase.from("classes").select("*").order("start_time", { ascending: true }),
+      ]);
       if (!paymentsRes.error) {
         setPaidMemberIds(new Set((paymentsRes.data ?? []).map((p) => p.member_id)));
+      }
+      if (!classesRes.error) {
+        setClasses(classesRes.data ?? []);
       }
     } else {
       const visitsRes = await supabase
@@ -97,6 +102,13 @@ export default function ClientsList() {
           if (paymentFilter === "paid" && !paid) return false;
           if (paymentFilter === "unpaid" && paid) return false;
         }
+        if (config.mode === "membership" && batchFilter !== "all") {
+          if (batchFilter === "none") {
+            if (m.class_id) return false;
+          } else if (m.class_id !== batchFilter) {
+            return false;
+          }
+        }
         return true;
       })
       .sort((a, b) => {
@@ -106,7 +118,7 @@ export default function ClientsList() {
         }
         return a.name.localeCompare(b.name);
       });
-  }, [members, search, statusFilter, genderFilter, paymentFilter, paidMemberIds, config.mode]);
+  }, [members, search, statusFilter, genderFilter, paymentFilter, batchFilter, paidMemberIds, config.mode]);
 
   return (
     <div className="relative min-h-[calc(100vh-6rem)]">
@@ -142,6 +154,18 @@ export default function ClientsList() {
                 { label: "Unpaid", value: "unpaid" },
               ]}
             />
+            {classes.length > 0 ? (
+              <Segmented
+                label="Batch"
+                value={batchFilter}
+                onChange={setBatchFilter}
+                options={[
+                  { label: "All", value: "all" },
+                  ...classes.map((c) => ({ label: c.name, value: c.id })),
+                  { label: "No batch", value: "none" },
+                ]}
+              />
+            ) : null}
           </>
         ) : null}
         <Segmented
