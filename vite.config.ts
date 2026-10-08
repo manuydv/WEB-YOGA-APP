@@ -21,8 +21,8 @@ export default defineConfig({
         name: "TaraShaktiYoga",
         short_name: "TaraShaktiYoga",
         description: "Member, payment, and financial tracking for studios and shops.",
-        theme_color: "#6E3D2E",
-        background_color: "#6E3D2E",
+        theme_color: "#F4EFE2",
+        background_color: "#F4EFE2",
         display: "standalone",
         start_url: "/",
         icons: [
