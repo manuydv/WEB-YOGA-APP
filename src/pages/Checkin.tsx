@@ -12,7 +12,6 @@ import { IconCalendarCheck, IconCheckCircle, IconFlame, IconPercent } from "@/co
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
-import { useHomeScreenIdentity } from "@/lib/homeScreen";
 import type { BusinessType, MemberStatus } from "@/types/database";
 
 interface ScheduleItem {
@@ -54,7 +53,6 @@ interface CheckinResult {
 }
 
 export default function Checkin() {
-  useHomeScreenIdentity("member");
   const { slug } = useParams<{ slug: string }>();
   const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);

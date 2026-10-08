@@ -11,6 +11,15 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        checkin: fileURLToPath(new URL("./checkin.html", import.meta.url)),
+        trainer: fileURLToPath(new URL("./trainer.html", import.meta.url)),
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
