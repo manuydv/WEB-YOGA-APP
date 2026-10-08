@@ -4,19 +4,26 @@ export type Portal = "owner" | "member" | "trainer";
 
 // iOS reads the live DOM (apple-mobile-web-app-title + apple-touch-icon)
 // at the moment "Add to Home Screen" is tapped, so updating those tags
-// per-route is enough there. Android/Chrome's install prompt reads the
-// manifest linked in <head> instead — there's only one manifest file on
-// disk (generated at build time), so for Chrome we swap <link
-// rel="manifest"> to a Blob URL holding a per-route copy of it, with its
-// own name/short_name/icons. start_url/scope point at the current path so
-// re-opening a saved icon lands back on that studio's specific
-// member/trainer page, not "/".
+// per-route is enough there for the icon image and label.
+//
+// For the LAUNCH destination, point <link rel="manifest"> at a real,
+// per-portal static file (manifest-<portal>.webmanifest, committed to
+// public/) rather than a Blob URL built on the fly. A Blob URL only
+// exists for the lifetime of the page that created it — it works at the
+// moment you tap "Add to Home Screen", but a cold launch later (a fresh
+// page load, which is what tapping the saved icon does) can't refetch it,
+// so iOS/Chrome silently falls back to the default /manifest.webmanifest
+// whose start_url is "/" — landing on the owner app regardless of which
+// icon was tapped. The static files below deliberately omit start_url
+// (and scope): per the Web App Manifest spec, when start_url is absent it
+// defaults to the URL of the page that linked the manifest, which is
+// already the right member/trainer studio link — no per-studio slug needs
+// baking into the manifest itself.
 
-const BASE_MANIFEST = {
-  description: "Member, payment, and financial tracking for studios and shops.",
-  theme_color: "#F4EFE2",
-  background_color: "#F4EFE2",
-  display: "standalone" as const,
+const MANIFEST_FILE: Record<Portal, string> = {
+  owner: "/manifest-owner.webmanifest",
+  member: "/manifest-member.webmanifest",
+  trainer: "/manifest-trainer.webmanifest",
 };
 
 /** Gives the current route its own home-screen name + icon (Owner/Member/Trainer), each visually distinct. */
@@ -34,30 +41,12 @@ export function useHomeScreenIdentity(portal: Portal) {
 
     const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     const previousManifestHref = manifestLink?.getAttribute("href") ?? null;
-    let blobUrl: string | null = null;
-
-    if (manifestLink) {
-      const manifest = {
-        ...BASE_MANIFEST,
-        name: `TaraShaktiYoga ${label}`,
-        short_name: label,
-        start_url: window.location.pathname,
-        scope: window.location.pathname,
-        icons: [
-          { src: `/icon-${portal}-192.png`, sizes: "192x192", type: "image/png" },
-          { src: `/icon-${portal}-512.png`, sizes: "512x512", type: "image/png" },
-          { src: `/icon-${portal}-maskable-512.png`, sizes: "512x512", type: "image/png", purpose: "maskable" },
-        ],
-      };
-      blobUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
-      manifestLink.setAttribute("href", blobUrl);
-    }
+    if (manifestLink) manifestLink.setAttribute("href", MANIFEST_FILE[portal]);
 
     return () => {
       if (titleMeta && previousTitle !== null) titleMeta.setAttribute("content", previousTitle);
       if (touchIconLink && previousTouchIcon !== null) touchIconLink.setAttribute("href", previousTouchIcon);
       if (manifestLink && previousManifestHref !== null) manifestLink.setAttribute("href", previousManifestHref);
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
   }, [portal]);
 }
