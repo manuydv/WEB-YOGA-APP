@@ -96,6 +96,16 @@ export function IconCheckCircle(props: IconProps) {
   );
 }
 
+export function IconDownload(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M4 19h16" />
+    </svg>
+  );
+}
+
 export function IconFlame(props: IconProps) {
   return (
     <svg {...base} {...props}>
