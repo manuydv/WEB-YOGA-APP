@@ -26,6 +26,16 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["apple-touch-icon.png"],
+      workbox: {
+        // Without this, the generated service worker's navigateFallback
+        // answers EVERY navigation it doesn't have an exact precache
+        // match for with the cached index.html — including
+        // /checkin/<slug> and /trainer/<slug>, whose slug makes them
+        // never match a precached URL exactly. That silently overrides
+        // Vercel's rewrite to checkin.html/trainer.html, always landing
+        // on the owner app regardless of what either file contains.
+        navigateFallbackDenylist: [/^\/checkin\//, /^\/trainer\//],
+      },
       manifest: {
         name: "TaraShaktiYoga",
         short_name: "TaraShaktiYoga",
