@@ -9,6 +9,7 @@ import { IconCheckCircle } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
+import { useHomeScreenIdentity } from "@/lib/homeScreen";
 import type { Class } from "@/types/database";
 
 interface StudioInfo {
@@ -44,6 +45,7 @@ function Avatar({ url }: { url: string | null }) {
 }
 
 export default function Trainer() {
+  useHomeScreenIdentity("Trainer");
   const { slug } = useParams<{ slug: string }>();
   const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [loading, setLoading] = useState(true);
