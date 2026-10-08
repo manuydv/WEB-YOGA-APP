@@ -54,7 +54,7 @@ interface CheckinResult {
 }
 
 export default function Checkin() {
-  useHomeScreenIdentity("Member");
+  useHomeScreenIdentity("member");
   const { slug } = useParams<{ slug: string }>();
   const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);

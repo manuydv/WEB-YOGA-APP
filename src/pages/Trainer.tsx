@@ -45,7 +45,7 @@ function Avatar({ url }: { url: string | null }) {
 }
 
 export default function Trainer() {
-  useHomeScreenIdentity("Trainer");
+  useHomeScreenIdentity("trainer");
   const { slug } = useParams<{ slug: string }>();
   const [studioInfo, setStudioInfo] = useState<StudioInfo | null>(null);
   const [loading, setLoading] = useState(true);
