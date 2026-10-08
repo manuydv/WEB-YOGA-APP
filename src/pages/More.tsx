@@ -23,7 +23,7 @@ export default function More() {
           <Link to="/employees" className="flex items-center justify-between border-b border-border px-4 py-4">
             <div>
               <div className="text-[15px] font-semibold text-text">Employees</div>
-              <div className="mt-0.5 text-xs text-text-muted">Staff list &amp; monthly pay</div>
+              <div className="mt-0.5 text-xs text-text-muted">Staff list, monthly pay &amp; trainer login</div>
             </div>
             <IconChevronRight className="text-text-muted" />
           </Link>

@@ -117,6 +117,7 @@ function SettingsForm() {
   const intakeConfig = getBusinessTypeConfig(businessType);
   const intakeLink = intakeSlug ? `${window.location.origin}/intake/${intakeSlug}` : null;
   const checkinLink = intakeSlug ? `${window.location.origin}/checkin/${intakeSlug}` : null;
+  const trainerLink = intakeSlug ? `${window.location.origin}/trainer/${intakeSlug}` : null;
 
   return (
     <div>
@@ -217,6 +218,26 @@ function SettingsForm() {
               </a>
             </>
           ) : null}
+        </Card>
+
+        <Card className="mb-4">
+          <div className="text-[15px] font-semibold text-text">Trainer portal link</div>
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+            Give an employee a trainer login PIN from their Employee page (under More → Employees), then share this
+            link so they can log in with their phone number and PIN to see their own info and mark member
+            attendance by day and batch — the same tool you use on the Check-in tab. Uses the same on/off switch as
+            the member account link above.
+          </p>
+          {checkinEnabled && trainerLink ? (
+            <>
+              <p className="mt-3 text-xs font-semibold text-text-muted">Share this link:</p>
+              <a href={trainerLink} className="mt-1 block break-all text-sm text-accent">
+                {trainerLink}
+              </a>
+            </>
+          ) : (
+            <p className="mt-3 text-xs text-text-muted">Turn on the member account link above to activate this too.</p>
+          )}
         </Card>
 
         {intakeConfig.mode === "visit" ? (

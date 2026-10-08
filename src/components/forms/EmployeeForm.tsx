@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import { Field, Segmented } from "@/components/Field";
 import { Input } from "@/components/ui";
 import { isValidDate } from "@/lib/dates";
@@ -8,6 +9,7 @@ export interface EmployeeFormValues {
   roleTitle: string;
   phone: string;
   email: string;
+  dateOfBirth: string;
   monthlyPay: string;
   status: EmployeeStatus;
   joinedOn: string;
@@ -34,13 +36,41 @@ export default function EmployeeForm({
   values,
   errors,
   onChange,
+  photoUrl,
+  onPhotoUpload,
+  photoUploading,
 }: {
   values: EmployeeFormValues;
   errors: EmployeeFormErrors;
   onChange: <K extends keyof EmployeeFormValues>(key: K, value: EmployeeFormValues[K]) => void;
+  photoUrl?: string | null;
+  onPhotoUpload?: (file: File) => void;
+  photoUploading?: boolean;
 }) {
+  const handlePhotoInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file && onPhotoUpload) onPhotoUpload(file);
+  };
+
   return (
     <div>
+      {onPhotoUpload ? (
+        <div className="mb-5 flex items-center gap-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+            {photoUrl ? (
+              <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs text-text-muted">No photo</div>
+            )}
+          </div>
+          <label className="text-sm font-semibold text-accent">
+            {photoUploading ? "Uploading…" : photoUrl ? "Change photo" : "Add photo"}
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoInput} disabled={photoUploading} />
+          </label>
+        </div>
+      ) : null}
+
       <Field label="Name" error={errors.name}>
         <Input value={values.name} onChange={(e) => onChange("name", e.target.value)} placeholder="Full name" />
       </Field>
@@ -49,7 +79,7 @@ export default function EmployeeForm({
         <Input
           value={values.roleTitle}
           onChange={(e) => onChange("roleTitle", e.target.value)}
-          placeholder="e.g. Barber, Instructor, Cleaner"
+          placeholder="e.g. Instructor, Barber, Cleaner"
         />
       </Field>
 
@@ -69,6 +99,10 @@ export default function EmployeeForm({
           placeholder="employee@example.com"
           type="email"
         />
+      </Field>
+
+      <Field label="Date of birth">
+        <Input value={values.dateOfBirth} onChange={(e) => onChange("dateOfBirth", e.target.value)} type="date" />
       </Field>
 
       <Field label="Joined on" error={errors.joinedOn}>
