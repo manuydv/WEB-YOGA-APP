@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
-import { currentMonth, daysSince, dueDateForMonth, formatDate } from "@/lib/dates";
+import { currentMonth, daysSince, dueDateForMonth, formatDate, monthRange } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { waLink } from "@/lib/whatsapp";
 import { Card } from "@/components/ui";
@@ -17,21 +17,34 @@ function Avatar({ url }: { url: string | null }) {
   );
 }
 
+interface OverdueMember {
+  member: Member;
+  oldestUnpaidMonth: string;
+  dueDate: string;
+  overdueDays: number;
+  unpaidMonthCount: number;
+  totalOwed: number;
+}
+
 export default function Reminders() {
   const { studio } = useAuth();
   const reminderDays = studio?.reminder_days ?? 5;
 
   const [members, setMembers] = useState<Member[]>([]);
-  const [paidMemberIds, setPaidMemberIds] = useState<Set<string>>(new Set());
+  const [paidByMember, setPaidByMember] = useState<Record<string, Set<string>>>({});
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     const [membersRes, paymentsRes] = await Promise.all([
       supabase.from("members").select("*").order("name", { ascending: true }),
-      supabase.from("payments").select("member_id").eq("month", currentMonth()).eq("paid", true),
+      supabase.from("payments").select("member_id, month, paid").eq("paid", true),
     ]);
     setMembers(membersRes.data ?? []);
-    setPaidMemberIds(new Set((paymentsRes.data ?? []).map((p) => p.member_id)));
+    const map: Record<string, Set<string>> = {};
+    for (const p of paymentsRes.data ?? []) {
+      (map[p.member_id] ??= new Set()).add(p.month);
+    }
+    setPaidByMember(map);
     setLoading(false);
   }, []);
 
@@ -40,16 +53,33 @@ export default function Reminders() {
   }, [load]);
 
   const overdue = useMemo(() => {
-    const month = currentMonth();
-    return members
-      .filter((m) => !paidMemberIds.has(m.id))
-      .map((m) => {
-        const dueDate = dueDateForMonth(m.joined_on, month);
-        return { member: m, dueDate, overdueDays: daysSince(dueDate) };
-      })
-      .filter((x) => x.overdueDays >= reminderDays)
-      .sort((a, b) => b.overdueDays - a.overdueDays);
-  }, [members, paidMemberIds, reminderDays]);
+    const nowMonth = currentMonth();
+    const result: OverdueMember[] = [];
+
+    for (const member of members) {
+      const joinMonth = member.joined_on.slice(0, 7);
+      const owedMonths = monthRange(joinMonth, nowMonth);
+      const paidMonths = paidByMember[member.id] ?? new Set<string>();
+      const unpaidMonths = owedMonths.filter((m) => !paidMonths.has(m));
+      if (unpaidMonths.length === 0) continue;
+
+      const oldestUnpaidMonth = unpaidMonths[0];
+      const dueDate = dueDateForMonth(member.joined_on, oldestUnpaidMonth);
+      const overdueDays = daysSince(dueDate);
+      if (overdueDays < reminderDays) continue;
+
+      result.push({
+        member,
+        oldestUnpaidMonth,
+        dueDate,
+        overdueDays,
+        unpaidMonthCount: unpaidMonths.length,
+        totalOwed: member.monthly_fee * unpaidMonths.length,
+      });
+    }
+
+    return result.sort((a, b) => b.overdueDays - a.overdueDays);
+  }, [members, paidByMember, reminderDays]);
 
   const withoutPhone = overdue.filter((x) => !x.member.phone).length;
 
@@ -60,17 +90,22 @@ export default function Reminders() {
       <TopBar title="Payment reminders" back />
       <div className="p-4 pb-10">
         <p className="mb-4 text-sm text-text-muted">
-          {overdue.length} member{overdue.length === 1 ? "" : "s"} unpaid and {reminderDays}+ days overdue.
+          {overdue.length} member{overdue.length === 1 ? "" : "s"} with a payment {reminderDays}+ days overdue.
           {withoutPhone > 0 ? ` ${withoutPhone} have no phone number on file.` : ""}
         </p>
 
         {overdue.length === 0 ? (
           <p className="mt-10 text-center text-sm text-text-muted">Nobody's overdue right now.</p>
         ) : (
-          overdue.map(({ member, dueDate, overdueDays }) => {
-            const message = `Hi ${member.name}, this is a reminder from ${studio?.name ?? "the studio"} that your membership fee of ${formatMoney(
-              member.monthly_fee
-            )} was due on ${formatDate(dueDate)}. Please make the payment at your earliest convenience. Thank you!`;
+          overdue.map(({ member, dueDate, overdueDays, unpaidMonthCount, totalOwed }) => {
+            const message =
+              unpaidMonthCount > 1
+                ? `Hi ${member.name}, this is a reminder from ${studio?.name ?? "the studio"} that you have ${unpaidMonthCount} months of unpaid membership fees (${formatMoney(
+                    totalOwed
+                  )} total), the oldest due on ${formatDate(dueDate)}. Please make the payment at your earliest convenience. Thank you!`
+                : `Hi ${member.name}, this is a reminder from ${studio?.name ?? "the studio"} that your membership fee of ${formatMoney(
+                    member.monthly_fee
+                  )} was due on ${formatDate(dueDate)}. Please make the payment at your earliest convenience. Thank you!`;
             return (
               <Card key={member.id} className="mb-3">
                 <div className="flex items-center gap-3">
@@ -78,7 +113,9 @@ export default function Reminders() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[15px] font-semibold text-text">{member.name}</div>
                     <div className="mt-0.5 text-xs text-text-muted">
-                      Due {formatDate(dueDate)} · {overdueDays} days overdue · {formatMoney(member.monthly_fee)}
+                      {unpaidMonthCount > 1
+                        ? `${unpaidMonthCount} months unpaid · ${formatMoney(totalOwed)} owed · oldest due ${formatDate(dueDate)} (${overdueDays}d ago)`
+                        : `Due ${formatDate(dueDate)} · ${overdueDays} days overdue · ${formatMoney(member.monthly_fee)}`}
                     </div>
                   </div>
                 </div>

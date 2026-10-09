@@ -46,6 +46,24 @@ export function formatMonth(month: string): string {
   return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+/** Every month (YYYY-MM) from `startMonth` through `endMonth`, inclusive, oldest first. */
+export function monthRange(startMonth: string, endMonth: string): string[] {
+  const [startYear, startMon] = startMonth.split("-").map(Number);
+  const [endYear, endMon] = endMonth.split("-").map(Number);
+  const months: string[] = [];
+  let year = startYear;
+  let mon = startMon;
+  while (year < endYear || (year === endYear && mon <= endMon)) {
+    months.push(`${year}-${String(mon).padStart(2, "0")}`);
+    mon++;
+    if (mon > 12) {
+      mon = 1;
+      year++;
+    }
+  }
+  return months;
+}
+
 /** Most recent `count` months up to and including the current month, newest first. */
 export function recentMonths(count: number): string[] {
   const months: string[] = [];
