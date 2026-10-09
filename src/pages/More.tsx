@@ -73,6 +73,15 @@ export default function More() {
             </div>
             <IconChevronRight className="text-text-muted" />
           </Link>
+          {config.mode === "membership" ? (
+            <Link to="/reminders" className="flex items-center justify-between border-b border-border px-4 py-4">
+              <div>
+                <div className="text-[15px] font-semibold text-text">Payment reminders</div>
+                <div className="mt-0.5 text-xs text-text-muted">Message overdue members on WhatsApp</div>
+              </div>
+              <IconChevronRight className="text-text-muted" />
+            </Link>
+          ) : null}
           <Link to="/settings" className="flex items-center justify-between px-4 py-4">
             <div>
               <div className="text-[15px] font-semibold text-text">Settings</div>

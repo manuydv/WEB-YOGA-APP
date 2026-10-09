@@ -24,6 +24,7 @@ import ClassNew from "@/pages/classes/ClassNew";
 import ClassDetail from "@/pages/classes/ClassDetail";
 import Analytics from "@/pages/Analytics";
 import Attendance from "@/pages/Attendance";
+import Reminders from "@/pages/Reminders";
 import More from "@/pages/More";
 import Settings from "@/pages/Settings";
 
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="/classes/new" element={<ClassNew />} />
             <Route path="/classes/:id" element={<ClassDetail />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/reminders" element={<Reminders />} />
             <Route path="/more" element={<More />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

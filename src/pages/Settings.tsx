@@ -240,11 +240,23 @@ function SettingsForm() {
           )}
         </Card>
 
+        <Field
+          label={
+            intakeConfig.mode === "membership"
+              ? "Remind after (days overdue on payment)"
+              : "Remind after (days since last visit)"
+          }
+        >
+          <Input value={reminderDays} onChange={(e) => setReminderDays(e.target.value)} inputMode="numeric" />
+        </Field>
+        {intakeConfig.mode === "membership" ? (
+          <p className="mb-4 -mt-3 text-xs leading-relaxed text-text-muted">
+            Used by Payment reminders (under More) to decide who's overdue enough to message.
+          </p>
+        ) : null}
+
         {intakeConfig.mode === "visit" ? (
           <>
-            <Field label="Remind after (days since last visit)">
-              <Input value={reminderDays} onChange={(e) => setReminderDays(e.target.value)} inputMode="numeric" />
-            </Field>
             <Field label="Reminder message (optional)">
               <textarea
                 value={reminderMessage}
