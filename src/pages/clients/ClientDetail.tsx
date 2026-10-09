@@ -381,13 +381,29 @@ export default function ClientDetail() {
         <Card className="mb-6 divide-y divide-border p-0">
           {recentMonths(HISTORY_MONTHS).map((month) => {
             const paid = paymentsByMonth[month]?.paid ?? false;
-            return (
-              <div key={month} className="flex items-center justify-between px-4 py-3">
-                <div className="text-sm font-semibold text-text">{formatMonth(month)}</div>
-                <div className={`text-sm font-semibold ${paid ? "text-success" : "text-text-muted"}`}>
-                  {paid ? "Paid" : "Unpaid"}
+            if (month === thisMonth) {
+              return (
+                <div key={month} className="flex items-center justify-between px-4 py-3">
+                  <div className="text-sm font-semibold text-text">{formatMonth(month)}</div>
+                  <div className={`text-sm font-semibold ${paid ? "text-success" : "text-text-muted"}`}>
+                    {paid ? "Paid" : "Unpaid"}
+                  </div>
                 </div>
-              </div>
+              );
+            }
+            return (
+              <button
+                type="button"
+                key={month}
+                disabled={markingPaid}
+                onClick={() => togglePaid(month, !paid)}
+                className="flex w-full items-center justify-between px-4 py-3 text-left disabled:opacity-60"
+              >
+                <div className="text-sm font-semibold text-text">{formatMonth(month)}</div>
+                <div className={`text-sm font-semibold ${paid ? "text-success" : "text-accent"}`}>
+                  {paid ? "Paid · Mark unpaid" : "Unpaid · Mark paid"}
+                </div>
+              </button>
             );
           })}
         </Card>
