@@ -19,30 +19,66 @@ export default function More() {
     setDownloadError(null);
     const { data: members, error } = await supabase
       .from("members")
-      .select("name, phone, email, date_of_birth, joined_on")
+      .select("id, name, phone, email, gender, date_of_birth, joined_on")
       .order("name", { ascending: true });
-    setDownloading(false);
 
     if (error) {
+      setDownloading(false);
       setDownloadError(error.message);
       return;
     }
 
+    const lastPaidByMember: Record<string, { month: string; paidOn: string | null }> = {};
+    if (config.mode === "membership") {
+      const { data: payments, error: paymentsError } = await supabase
+        .from("payments")
+        .select("member_id, month, paid_on")
+        .eq("paid", true);
+      if (paymentsError) {
+        setDownloading(false);
+        setDownloadError(paymentsError.message);
+        return;
+      }
+      for (const p of payments ?? []) {
+        const existing = lastPaidByMember[p.member_id];
+        if (!existing || p.month > existing.month) {
+          lastPaidByMember[p.member_id] = { month: p.month, paidOn: p.paid_on };
+        }
+      }
+    }
+    setDownloading(false);
+
+    const headerRow = [
+      { value: "Name", fontWeight: "bold" as const },
+      { value: "Phone", fontWeight: "bold" as const },
+      { value: "Email", fontWeight: "bold" as const },
+      { value: "Gender", fontWeight: "bold" as const },
+      { value: "Date of birth", fontWeight: "bold" as const },
+      { value: "Date joined", fontWeight: "bold" as const },
+      ...(config.mode === "membership"
+        ? [
+            { value: "Last paid month", fontWeight: "bold" as const },
+            { value: "Last payment date", fontWeight: "bold" as const },
+          ]
+        : []),
+    ];
+
     const rows = [
-      [
-        { value: "Name", fontWeight: "bold" as const },
-        { value: "Phone", fontWeight: "bold" as const },
-        { value: "Email", fontWeight: "bold" as const },
-        { value: "Date of birth", fontWeight: "bold" as const },
-        { value: "Date joined", fontWeight: "bold" as const },
-      ],
-      ...(members ?? []).map((m) => [
-        { value: m.name },
-        { value: m.phone ?? "" },
-        { value: m.email ?? "" },
-        { value: m.date_of_birth ?? "" },
-        { value: m.joined_on },
-      ]),
+      headerRow,
+      ...(members ?? []).map((m) => {
+        const lastPaid = lastPaidByMember[m.id];
+        return [
+          { value: m.name },
+          { value: m.phone ?? "" },
+          { value: m.email ?? "" },
+          { value: m.gender ?? "" },
+          { value: m.date_of_birth ?? "" },
+          { value: m.joined_on },
+          ...(config.mode === "membership"
+            ? [{ value: lastPaid?.month ?? "" }, { value: lastPaid?.paidOn ?? "" }]
+            : []),
+        ];
+      }),
     ];
 
     await writeXlsxFile(rows).toFile(`${config.personLabelPlural.toLowerCase()}-${studio?.name ?? "studio"}.xlsx`);
@@ -104,7 +140,8 @@ export default function More() {
                 {downloading ? "Preparing…" : "Download data"}
               </div>
               <div className="mt-0.5 text-xs text-text-muted">
-                {config.personLabelPlural} as an Excel file — name, phone, email, DOB, date joined
+                {config.personLabelPlural} as an Excel file — name, phone, email, gender, DOB, date joined
+                {config.mode === "membership" ? ", last payment" : ""}
               </div>
             </div>
             <IconDownload className="shrink-0 text-text-muted" />
