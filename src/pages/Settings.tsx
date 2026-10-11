@@ -34,6 +34,9 @@ function SettingsForm() {
   const [contactEmail, setContactEmail] = useState(studio!.contact_email ?? "");
   const [contactAddress, setContactAddress] = useState(studio!.contact_address ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(studio!.website_url ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(studio!.instagram_url ?? "");
+  const [googleUrl, setGoogleUrl] = useState(studio!.google_url ?? "");
+  const [mapUrl, setMapUrl] = useState(studio!.map_url ?? "");
   const [upiId, setUpiId] = useState(studio!.upi_id ?? "");
   const [paymentQrUrl, setPaymentQrUrl] = useState(studio!.payment_qr_url);
   const [uploadingQr, setUploadingQr] = useState(false);
@@ -76,6 +79,9 @@ function SettingsForm() {
         contact_email: contactEmail.trim() || null,
         contact_address: contactAddress.trim() || null,
         website_url: websiteUrl.trim() || null,
+        instagram_url: instagramUrl.trim() || null,
+        google_url: googleUrl.trim() || null,
+        map_url: mapUrl.trim() || null,
         upi_id: upiId.trim() || null,
       })
       .eq("id", studio!.id);
@@ -153,6 +159,37 @@ function SettingsForm() {
               onChange={(e) => setWebsiteUrl(e.target.value)}
               type="url"
               placeholder="https://yourstudio.com"
+            />
+          </Field>
+        </Card>
+
+        <SectionLabel>Social &amp; map links</SectionLabel>
+        <Card className="mb-4">
+          <p className="mb-3 text-xs leading-relaxed text-text-muted">
+            Shown as tap-through icons above the phone numbers in the footer. Leave anything blank to hide it.
+          </p>
+          <Field label="Instagram link">
+            <Input
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+              type="url"
+              placeholder="https://instagram.com/yourstudio"
+            />
+          </Field>
+          <Field label="Google link (search / listing)">
+            <Input
+              value={googleUrl}
+              onChange={(e) => setGoogleUrl(e.target.value)}
+              type="url"
+              placeholder="https://www.google.com/search?q=..."
+            />
+          </Field>
+          <Field label="Map location link">
+            <Input
+              value={mapUrl}
+              onChange={(e) => setMapUrl(e.target.value)}
+              type="url"
+              placeholder="https://maps.app.goo.gl/..."
             />
           </Field>
         </Card>

@@ -18,6 +18,9 @@ interface StudioInfo {
   contact_email: string | null;
   contact_address: string | null;
   website_url: string | null;
+  instagram_url: string | null;
+  google_url: string | null;
+  map_url: string | null;
 }
 
 interface TrainerProfile {

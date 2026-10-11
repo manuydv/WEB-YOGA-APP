@@ -191,3 +191,31 @@ export function IconGoogle(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconInstagram(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17" cy="7" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconSearch(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4.3-4.3" />
+    </svg>
+  );
+}
+
+export function IconMapPin(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 21s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12Z" />
+      <circle cx="12" cy="9" r="2.3" />
+    </svg>
+  );
+}
