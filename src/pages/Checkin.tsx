@@ -500,10 +500,7 @@ export default function Checkin() {
         {mode === "checkin" ? (
           <form onSubmit={handleSubmit}>
             <h1 className="text-center text-2xl font-bold text-text">My account at {studioInfo.name}</h1>
-            <p className="mb-7 mt-2 text-center text-sm text-text-muted">
-              Enter your phone number and PIN — or just the last 4 digits of your phone number if you haven't set
-              one.
-            </p>
+            <p className="mb-7 mt-2 text-center text-sm text-text-muted">Enter your phone number and PIN</p>
 
             <Field label="Phone number">
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoFocus />
