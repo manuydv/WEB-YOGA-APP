@@ -46,6 +46,13 @@ export function formatMonth(month: string): string {
   return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+/** "2026-06" -> "Jun" — compact label for a month axis. */
+export function formatMonthShort(month: string): string {
+  const [year, mon] = month.split("-").map(Number);
+  const date = new Date(year, mon - 1, 1);
+  return date.toLocaleDateString(undefined, { month: "short" });
+}
+
 /** Every month (YYYY-MM) from `startMonth` through `endMonth`, inclusive, oldest first. */
 export function monthRange(startMonth: string, endMonth: string): string[] {
   const [startYear, startMon] = startMonth.split("-").map(Number);
