@@ -92,9 +92,14 @@ export default function ClientsList() {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
+    const termDigits = term.replace(/\D/g, "");
     return members
       .filter((m) => {
-        if (term && !m.name.toLowerCase().includes(term)) return false;
+        if (term) {
+          const nameMatch = m.name.toLowerCase().includes(term);
+          const phoneMatch = termDigits && (m.phone ?? "").replace(/\D/g, "").includes(termDigits);
+          if (!nameMatch && !phoneMatch) return false;
+        }
         if (config.mode === "membership" && statusFilter !== "all" && m.status !== statusFilter) return false;
         if (genderFilter !== "all" && m.gender !== genderFilter) return false;
         if (config.mode === "membership" && paymentFilter !== "all") {
@@ -128,7 +133,7 @@ export default function ClientsList() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={`Search ${config.personLabelPlural.toLowerCase()}`}
+          placeholder={`Search ${config.personLabelPlural.toLowerCase()} or phone number`}
           className="mb-3"
         />
 
