@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { Card, SectionLabel } from "@/components/ui";
-import { IconChevronRight, IconDownload, IconLogout } from "@/components/icons";
+import { IconChevronRight, IconClock, IconDownload, IconLogout } from "@/components/icons";
 import TopBar from "@/components/TopBar";
 
 export default function More() {
@@ -129,6 +129,15 @@ export default function More() {
 
         <SectionLabel>Data</SectionLabel>
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-surface">
+          <Link to="/activity" className="flex items-center justify-between border-b border-border px-4 py-4">
+            <div>
+              <div className="text-[15px] font-semibold text-text">Activity log</div>
+              <div className="mt-0.5 text-xs text-text-muted">
+                Portal logins, profile updates &amp; failed attempts
+              </div>
+            </div>
+            <IconClock className="shrink-0 text-text-muted" />
+          </Link>
           <button
             type="button"
             onClick={handleDownload}

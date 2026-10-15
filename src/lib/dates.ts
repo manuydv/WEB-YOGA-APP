@@ -89,6 +89,18 @@ export function formatDate(dateStr: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+/** An ISO timestamp (e.g. from a `timestamptz` column) -> "Oct 15, 2026, 3:45 PM". */
+export function formatDateTime(isoString: string): string {
+  const d = new Date(isoString);
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** `[1, 3, 5]` (Mon=1..) -> "Mon, Wed, Fri". */
