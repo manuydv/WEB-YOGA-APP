@@ -109,6 +109,13 @@ export default function More() {
             </div>
             <IconChevronRight className="text-text-muted" />
           </Link>
+          <Link to="/community" className="flex items-center justify-between border-b border-border px-4 py-4">
+            <div>
+              <div className="text-[15px] font-semibold text-text">Community tab</div>
+              <div className="mt-0.5 text-xs text-text-muted">Announcement, spotlights &amp; photo slideshow</div>
+            </div>
+            <IconChevronRight className="text-text-muted" />
+          </Link>
           {config.mode === "membership" ? (
             <Link to="/reminders" className="flex items-center justify-between border-b border-border px-4 py-4">
               <div>

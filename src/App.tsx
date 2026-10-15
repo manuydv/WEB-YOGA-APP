@@ -26,6 +26,7 @@ import Analytics from "@/pages/Analytics";
 import Attendance from "@/pages/Attendance";
 import Reminders from "@/pages/Reminders";
 import ActivityLog from "@/pages/ActivityLog";
+import Community from "@/pages/Community";
 import More from "@/pages/More";
 import Settings from "@/pages/Settings";
 
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/activity" element={<ActivityLog />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/more" element={<More />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

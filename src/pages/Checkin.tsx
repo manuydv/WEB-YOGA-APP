@@ -9,6 +9,7 @@ import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { Badge, Button, Card, DayPills, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
 import { MemberAvatar } from "@/components/MemberAvatar";
+import { Slideshow } from "@/components/Slideshow";
 import { IconCalendarCheck, IconCheckCircle, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
@@ -42,6 +43,7 @@ interface CheckinResult {
   member_id: string;
   member_name: string;
   recent_visits: string[];
+  total_visits: number;
   monthly_fee: number;
   member_status: MemberStatus;
   this_month_paid: boolean;
@@ -55,6 +57,29 @@ interface CheckinResult {
   phone: string | null;
   email: string | null;
   date_of_birth: string | null;
+}
+
+interface CommunityData {
+  announcement_text: string | null;
+  spotlight_1_title: string | null;
+  spotlight_1_name: string | null;
+  spotlight_1_photo_url: string | null;
+  spotlight_2_title: string | null;
+  spotlight_2_name: string | null;
+  spotlight_2_photo_url: string | null;
+  gallery_photo_urls: string[];
+  birthday_names: string[];
+  birthday_days: number[];
+}
+
+const VISIT_MILESTONES = [10, 25, 50, 100, 200, 365, 500, 1000];
+
+function highestMilestone(total: number): number | null {
+  let reached: number | null = null;
+  for (const milestone of VISIT_MILESTONES) {
+    if (total >= milestone) reached = milestone;
+  }
+  return reached;
 }
 
 export default function Checkin() {
@@ -87,6 +112,32 @@ export default function Checkin() {
 
   const [markingAttendance, setMarkingAttendance] = useState(false);
   const [attendanceError, setAttendanceError] = useState<string | null>(null);
+
+  const [tab, setTab] = useState<"account" | "community">("account");
+  const [community, setCommunity] = useState<CommunityData | null>(null);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [communityError, setCommunityError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tab !== "community" || community || !result) return;
+    let mounted = true;
+    setCommunityLoading(true);
+    setCommunityError(null);
+    supabase
+      .rpc("public_checkin_community", { intake_slug: slug ?? "", client_phone: result.phone ?? "", pin })
+      .then(({ data, error: rpcError }) => {
+        if (!mounted) return;
+        setCommunityLoading(false);
+        if (rpcError || !data || data.length === 0) {
+          setCommunityError(rpcError?.message ?? "Couldn't load the Community tab.");
+          return;
+        }
+        setCommunity(data[0]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [tab, community, result, slug, pin]);
 
   const handleMarkAttendance = async () => {
     if (!result) return;
@@ -263,177 +314,287 @@ export default function Checkin() {
 
   if (result) {
     const stats = computeCheckinStats(result.recent_visits, today());
+    const milestone = highestMilestone(result.total_visits);
     return (
       <div className="min-h-screen bg-ink">
         <BrandHeader />
         <div className="flex flex-col items-center px-6 py-10">
         <div className="w-full max-w-sm">
-          <Card className="mb-3">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Membership</div>
-              <Badge tone="accent">Member</Badge>
-            </div>
-            <div className="flex items-center gap-3">
-              <MemberAvatar photoUrl={result.photo_url} gender={result.gender} size={56} />
-              <div>
-                <div className="font-heading text-lg text-text">{result.member_name}</div>
-                <div className="text-xs text-text-muted">{studioInfo.name}</div>
-              </div>
-            </div>
-          </Card>
-
-          {config.mode === "membership" ? (
-            <Card className="mb-3" highlight>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[15px] font-semibold capitalize text-text">{result.member_status} member</div>
-                  <div className="mt-0.5 text-xs text-text-muted">{formatMoney(result.monthly_fee)}/month</div>
-                </div>
-                <Badge tone={result.this_month_paid ? "success" : "danger"}>
-                  {result.this_month_paid ? "Paid this month" : "Unpaid this month"}
-                </Badge>
-              </div>
-            </Card>
-          ) : null}
-
-          <div className="grid grid-cols-3 gap-3">
-            <StatTile icon={<IconFlame />} value={stats.weekStreak} label="Week streak" />
-            <StatTile icon={<IconCalendarCheck />} value={stats.thisWeekVisits} label="This week" />
-            <StatTile icon={<IconPercent />} value={`${stats.attendancePct}%`} label="Attendance" />
-          </div>
-
-          <Card className="mt-5">
-            {result.recent_visits.includes(today()) ? (
-              <div className="flex items-center justify-center gap-2 py-1 text-success">
-                <IconCheckCircle />
-                <span className="text-sm font-semibold">You're marked present today</span>
-              </div>
-            ) : (
-              <Button type="button" onClick={handleMarkAttendance} loading={markingAttendance} className="w-full">
-                Mark today's attendance
-              </Button>
-            )}
-            {attendanceError ? <p className="mt-2 text-center text-sm text-danger">{attendanceError}</p> : null}
-          </Card>
-
-          {result.batch_name && result.batch_days_of_week && result.batch_start_time ? (
-            <Card className="mt-5">
-              <div className="mb-3 text-xs font-bold uppercase tracking-wide text-text-muted">My batch</div>
-              <div className="text-[15px] font-semibold text-text">{result.batch_name}</div>
-              <div className="mt-1 text-xs text-text-muted">
-                {formatTime(result.batch_start_time)} · {result.batch_duration_minutes} min
-                {result.batch_instructor_name ? ` · ${result.batch_instructor_name}` : ""}
-              </div>
-              <div className="mt-3">
-                <DayPills days={result.batch_days_of_week} />
-              </div>
-            </Card>
-          ) : null}
-
-          <Card className="mt-5">
+          <div className="mb-5 flex rounded-2xl border border-border bg-surface p-1">
             <button
               type="button"
-              onClick={() => setEditOpen((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
+              onClick={() => setTab("account")}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold ${
+                tab === "account" ? "bg-accent text-white" : "text-text-muted"
+              }`}
             >
-              <div className="text-xs font-bold uppercase tracking-wide text-text-muted">My info</div>
-              <div className="text-xs font-semibold text-accent">{editOpen ? "Close" : "Edit"}</div>
+              My account
             </button>
+            <button
+              type="button"
+              onClick={() => setTab("community")}
+              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold ${
+                tab === "community" ? "bg-accent text-white" : "text-text-muted"
+              }`}
+            >
+              Community
+            </button>
+          </div>
 
-            {editOpen ? (
-              <form onSubmit={handleProfileSave} className="mt-4">
-                <div className="mb-4 flex items-center gap-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-                    {result.photo_url ? (
-                      <img src={result.photo_url} alt="" className="h-full w-full object-cover" />
-                    ) : null}
+          {tab === "account" ? (
+            <>
+              <Card className="mb-3">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Membership</div>
+                  <Badge tone="accent">Member</Badge>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MemberAvatar photoUrl={result.photo_url} gender={result.gender} size={56} />
+                  <div>
+                    <div className="font-heading text-lg text-text">{result.member_name}</div>
+                    <div className="text-xs text-text-muted">{studioInfo.name}</div>
                   </div>
-                  <label className="text-sm font-semibold text-accent">
-                    {editUploadingPhoto ? "Uploading…" : result.photo_url ? "Change photo" : "Add photo"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={editUploadingPhoto}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (file) handleEditPhotoUpload(file);
-                      }}
-                    />
-                  </label>
                 </div>
+              </Card>
 
-                <Field label="Phone number">
-                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} type="tel" />
-                </Field>
-                <Field label="Email">
-                  <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
-                </Field>
-                <Field label="Date of birth">
-                  <Input value={editDob} onChange={(e) => setEditDob(e.target.value)} type="date" />
-                </Field>
-
-                {editError ? <p className="mb-3 text-center text-sm text-danger">{editError}</p> : null}
-                {editMessage ? <p className="mb-3 text-center text-sm text-success">{editMessage}</p> : null}
-
-                <Button type="submit" loading={editSaving} disabled={!editPhone.trim()} className="w-full">
-                  Save
-                </Button>
-              </form>
-            ) : null}
-          </Card>
-
-          {studioInfo.upi_id || studioInfo.payment_qr_url ? (
-            <Card className="mt-5">
-              <button
-                type="button"
-                onClick={() => setPaymentOpen((v) => !v)}
-                className="flex w-full items-center justify-between text-left"
-              >
-                <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Make payment</div>
-                <div className="text-xs font-semibold text-accent">{paymentOpen ? "Close" : "Pay"}</div>
-              </button>
-
-              {paymentOpen ? (
-                <div className="mt-4">
-                  {studioInfo.upi_id ? (
-                    <div className="mb-4">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">UPI ID</div>
-                      <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-surface-raised px-3.5 py-3">
-                        <span className="truncate text-sm font-semibold text-text">{studioInfo.upi_id}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyUpi(studioInfo.upi_id!)}
-                          className="ml-3 shrink-0 text-sm font-semibold text-accent"
-                        >
-                          Copy
-                        </button>
+              {config.mode === "membership" ? (
+                <Card className="mb-3" highlight>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[15px] font-semibold capitalize text-text">
+                        {result.member_status} member
                       </div>
-                      {copyMessage ? <p className="mt-1.5 text-xs text-success">{copyMessage}</p> : null}
+                      <div className="mt-0.5 text-xs text-text-muted">{formatMoney(result.monthly_fee)}/month</div>
+                    </div>
+                    <Badge tone={result.this_month_paid ? "success" : "danger"}>
+                      {result.this_month_paid ? "Paid this month" : "Unpaid this month"}
+                    </Badge>
+                  </div>
+                </Card>
+              ) : null}
+
+              {milestone ? (
+                <Card className="mb-3" highlight>
+                  <div className="text-center text-[15px] font-semibold text-text">
+                    🎉 {milestone} classes completed!
+                  </div>
+                </Card>
+              ) : null}
+
+              <div className="grid grid-cols-3 gap-3">
+                <StatTile icon={<IconFlame />} value={stats.weekStreak} label="Week streak" />
+                <StatTile icon={<IconCalendarCheck />} value={stats.thisWeekVisits} label="This week" />
+                <StatTile icon={<IconPercent />} value={`${stats.attendancePct}%`} label="Attendance" />
+              </div>
+
+              <Card className="mt-5">
+                {result.recent_visits.includes(today()) ? (
+                  <div className="flex items-center justify-center gap-2 py-1 text-success">
+                    <IconCheckCircle />
+                    <span className="text-sm font-semibold">You're marked present today</span>
+                  </div>
+                ) : (
+                  <Button type="button" onClick={handleMarkAttendance} loading={markingAttendance} className="w-full">
+                    Mark today's attendance
+                  </Button>
+                )}
+                {attendanceError ? <p className="mt-2 text-center text-sm text-danger">{attendanceError}</p> : null}
+              </Card>
+
+              {result.batch_name && result.batch_days_of_week && result.batch_start_time ? (
+                <Card className="mt-5">
+                  <div className="mb-3 text-xs font-bold uppercase tracking-wide text-text-muted">My batch</div>
+                  <div className="text-[15px] font-semibold text-text">{result.batch_name}</div>
+                  <div className="mt-1 text-xs text-text-muted">
+                    {formatTime(result.batch_start_time)} · {result.batch_duration_minutes} min
+                    {result.batch_instructor_name ? ` · ${result.batch_instructor_name}` : ""}
+                  </div>
+                  <div className="mt-3">
+                    <DayPills days={result.batch_days_of_week} />
+                  </div>
+                </Card>
+              ) : null}
+
+              <Card className="mt-5">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen((v) => !v)}
+                  className="flex w-full items-center justify-between text-left"
+                >
+                  <div className="text-xs font-bold uppercase tracking-wide text-text-muted">My info</div>
+                  <div className="text-xs font-semibold text-accent">{editOpen ? "Close" : "Edit"}</div>
+                </button>
+
+                {editOpen ? (
+                  <form onSubmit={handleProfileSave} className="mt-4">
+                    <div className="mb-4 flex items-center gap-4">
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
+                        {result.photo_url ? (
+                          <img src={result.photo_url} alt="" className="h-full w-full object-cover" />
+                        ) : null}
+                      </div>
+                      <label className="text-sm font-semibold text-accent">
+                        {editUploadingPhoto ? "Uploading…" : result.photo_url ? "Change photo" : "Add photo"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={editUploadingPhoto}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            if (file) handleEditPhotoUpload(file);
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <Field label="Phone number">
+                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} type="tel" />
+                    </Field>
+                    <Field label="Email">
+                      <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
+                    </Field>
+                    <Field label="Date of birth">
+                      <Input value={editDob} onChange={(e) => setEditDob(e.target.value)} type="date" />
+                    </Field>
+
+                    {editError ? <p className="mb-3 text-center text-sm text-danger">{editError}</p> : null}
+                    {editMessage ? <p className="mb-3 text-center text-sm text-success">{editMessage}</p> : null}
+
+                    <Button type="submit" loading={editSaving} disabled={!editPhone.trim()} className="w-full">
+                      Save
+                    </Button>
+                  </form>
+                ) : null}
+              </Card>
+
+              {studioInfo.upi_id || studioInfo.payment_qr_url ? (
+                <Card className="mt-5">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentOpen((v) => !v)}
+                    className="flex w-full items-center justify-between text-left"
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wide text-text-muted">Make payment</div>
+                    <div className="text-xs font-semibold text-accent">{paymentOpen ? "Close" : "Pay"}</div>
+                  </button>
+
+                  {paymentOpen ? (
+                    <div className="mt-4">
+                      {studioInfo.upi_id ? (
+                        <div className="mb-4">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">UPI ID</div>
+                          <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-surface-raised px-3.5 py-3">
+                            <span className="truncate text-sm font-semibold text-text">{studioInfo.upi_id}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyUpi(studioInfo.upi_id!)}
+                              className="ml-3 shrink-0 text-sm font-semibold text-accent"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          {copyMessage ? <p className="mt-1.5 text-xs text-success">{copyMessage}</p> : null}
+                        </div>
+                      ) : null}
+
+                      {studioInfo.payment_qr_url ? (
+                        <div className="flex flex-col items-center">
+                          <img
+                            src={studioInfo.payment_qr_url}
+                            alt="Payment QR code"
+                            className="h-48 w-48 rounded-xl border border-border object-contain"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadQr(studioInfo.payment_qr_url!)}
+                            className="mt-3 text-sm font-semibold text-accent"
+                          >
+                            Save QR code
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </Card>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {communityLoading ? (
+                <p className="py-10 text-center text-sm text-text-muted">Loading…</p>
+              ) : communityError ? (
+                <p className="py-10 text-center text-sm text-danger">{communityError}</p>
+              ) : community ? (
+                <>
+                  {community.spotlight_1_name || community.spotlight_2_name ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      {community.spotlight_1_name ? (
+                        <Card className="flex flex-col items-center py-5 text-center">
+                          <MemberAvatar photoUrl={community.spotlight_1_photo_url} size={56} />
+                          <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                            {community.spotlight_1_title ?? "Spotlight"}
+                          </div>
+                          <div className="mt-0.5 text-sm font-semibold text-text">{community.spotlight_1_name}</div>
+                        </Card>
+                      ) : null}
+                      {community.spotlight_2_name ? (
+                        <Card className="flex flex-col items-center py-5 text-center">
+                          <MemberAvatar photoUrl={community.spotlight_2_photo_url} size={56} />
+                          <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                            {community.spotlight_2_title ?? "Spotlight"}
+                          </div>
+                          <div className="mt-0.5 text-sm font-semibold text-text">{community.spotlight_2_name}</div>
+                        </Card>
+                      ) : null}
                     </div>
                   ) : null}
 
-                  {studioInfo.payment_qr_url ? (
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={studioInfo.payment_qr_url}
-                        alt="Payment QR code"
-                        className="h-48 w-48 rounded-xl border border-border object-contain"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleDownloadQr(studioInfo.payment_qr_url!)}
-                        className="mt-3 text-sm font-semibold text-accent"
-                      >
-                        Save QR code
-                      </button>
+                  {community.announcement_text ? (
+                    <Card className="mt-3" highlight>
+                      <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                        Announcement
+                      </div>
+                      <p className="text-sm leading-relaxed text-text">{community.announcement_text}</p>
+                    </Card>
+                  ) : null}
+
+                  {community.birthday_names.length > 0 ? (
+                    <Card className="mt-3">
+                      <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                        Birthdays this month 🎂
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {community.birthday_names.map((name, i) => (
+                          <div key={`${name}-${i}`} className="text-sm text-text">
+                            {name}
+                            {community.birthday_days[i] ? (
+                              <span className="text-text-muted"> · {community.birthday_days[i]}</span>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  ) : null}
+
+                  {community.gallery_photo_urls.length > 0 ? (
+                    <div className="mt-3">
+                      <Slideshow photos={community.gallery_photo_urls} />
                     </div>
                   ) : null}
-                </div>
+
+                  {!community.spotlight_1_name &&
+                  !community.spotlight_2_name &&
+                  !community.announcement_text &&
+                  community.birthday_names.length === 0 &&
+                  community.gallery_photo_urls.length === 0 ? (
+                    <p className="py-10 text-center text-sm text-text-muted">Nothing here yet — check back soon!</p>
+                  ) : null}
+                </>
               ) : null}
-            </Card>
-          ) : null}
+            </>
+          )}
         </div>
         </div>
         <Footer info={studioInfo} />
