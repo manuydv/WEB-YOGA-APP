@@ -5,17 +5,10 @@ import { currentMonth, daysSince, dueDateForMonth, formatDate, monthRange } from
 import { formatMoney } from "@/lib/money";
 import { waLink } from "@/lib/whatsapp";
 import { Card } from "@/components/ui";
+import { MemberAvatar } from "@/components/MemberAvatar";
 import TopBar from "@/components/TopBar";
 import LoadingScreen from "@/components/LoadingScreen";
 import type { Member } from "@/types/database";
-
-function Avatar({ url }: { url: string | null }) {
-  return (
-    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : null}
-    </div>
-  );
-}
 
 interface OverdueMember {
   member: Member;
@@ -109,7 +102,7 @@ export default function Reminders() {
             return (
               <Card key={member.id} className="mb-3">
                 <div className="flex items-center gap-3">
-                  <Avatar url={member.photo_url} />
+                  <MemberAvatar photoUrl={member.photo_url} gender={member.gender} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[15px] font-semibold text-text">{member.name}</div>
                     <div className="mt-0.5 text-xs text-text-muted">

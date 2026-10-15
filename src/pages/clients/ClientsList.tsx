@@ -6,7 +6,8 @@ import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { currentMonth, daysSince } from "@/lib/dates";
 import { Badge, Input } from "@/components/ui";
 import { Segmented } from "@/components/Field";
-import { IconPlus } from "@/components/icons";
+import { MemberAvatar } from "@/components/MemberAvatar";
+import { IconChevronRight, IconPlus } from "@/components/icons";
 import TopBar from "@/components/TopBar";
 import type { Class, Gender, Member, MemberStatus } from "@/types/database";
 
@@ -16,14 +17,6 @@ type PaymentFilter = "all" | "paid" | "unpaid";
 type BatchFilter = "all" | "none" | string;
 
 const STATUS_ORDER: Record<MemberStatus, number> = { active: 0, inactive: 1 };
-
-function Avatar({ url }: { url: string | null }) {
-  return (
-    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : null}
-    </div>
-  );
-}
 
 export default function ClientsList() {
   const { staffUser, studio } = useAuth();
@@ -39,6 +32,7 @@ export default function ClientsList() {
   const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
   const [batchFilter, setBatchFilter] = useState<BatchFilter>("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,6 +119,13 @@ export default function ClientsList() {
       });
   }, [members, search, statusFilter, genderFilter, paymentFilter, batchFilter, paidMemberIds, config.mode]);
 
+  const activeFilterCount = [
+    config.mode === "membership" && statusFilter !== "all",
+    config.mode === "membership" && paymentFilter !== "all",
+    config.mode === "membership" && batchFilter !== "all",
+    genderFilter !== "all",
+  ].filter(Boolean).length;
+
   return (
     <div className="relative min-h-[calc(100vh-6rem)]">
       <TopBar title={config.personLabelPlural} />
@@ -137,53 +138,70 @@ export default function ClientsList() {
           className="mb-3"
         />
 
-        {config.mode === "membership" ? (
-          <>
-            <Segmented
-              label="Status"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { label: "All", value: "all" },
-                { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
-              ]}
-            />
-            <Segmented
-              label="Payment this month"
-              value={paymentFilter}
-              onChange={setPaymentFilter}
-              options={[
-                { label: "All", value: "all" },
-                { label: "Paid", value: "paid" },
-                { label: "Unpaid", value: "unpaid" },
-              ]}
-            />
-            {classes.length > 0 ? (
-              <Segmented
-                label="Batch"
-                value={batchFilter}
-                onChange={setBatchFilter}
-                options={[
-                  { label: "All", value: "all" },
-                  ...classes.map((c) => ({ label: c.name, value: c.id })),
-                  { label: "No batch", value: "none" },
-                ]}
-              />
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          className="mb-3 flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
+        >
+          <span className="text-sm font-semibold text-text">
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </span>
+          <IconChevronRight
+            className={`text-text-muted transition-transform ${filtersOpen ? "rotate-90" : ""}`}
+          />
+        </button>
+
+        {filtersOpen ? (
+          <div className="mb-1">
+            {config.mode === "membership" ? (
+              <>
+                <Segmented
+                  label="Status"
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={[
+                    { label: "All", value: "all" },
+                    { label: "Active", value: "active" },
+                    { label: "Inactive", value: "inactive" },
+                  ]}
+                />
+                <Segmented
+                  label="Payment this month"
+                  value={paymentFilter}
+                  onChange={setPaymentFilter}
+                  options={[
+                    { label: "All", value: "all" },
+                    { label: "Paid", value: "paid" },
+                    { label: "Unpaid", value: "unpaid" },
+                  ]}
+                />
+                {classes.length > 0 ? (
+                  <Segmented
+                    label="Batch"
+                    value={batchFilter}
+                    onChange={setBatchFilter}
+                    options={[
+                      { label: "All", value: "all" },
+                      ...classes.map((c) => ({ label: c.name, value: c.id })),
+                      { label: "No batch", value: "none" },
+                    ]}
+                  />
+                ) : null}
+              </>
             ) : null}
-          </>
+            <Segmented
+              label="Gender"
+              value={genderFilter}
+              onChange={setGenderFilter}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Female", value: "female" },
+                { label: "Male", value: "male" },
+                { label: "Other", value: "other" },
+              ]}
+            />
+          </div>
         ) : null}
-        <Segmented
-          label="Gender"
-          value={genderFilter}
-          onChange={setGenderFilter}
-          options={[
-            { label: "All", value: "all" },
-            { label: "Female", value: "female" },
-            { label: "Male", value: "male" },
-            { label: "Other", value: "other" },
-          ]}
-        />
       </div>
 
       {error ? <p className="px-4 text-center text-sm text-danger">{error}</p> : null}
@@ -206,7 +224,7 @@ export default function ClientsList() {
                   to={`/clients/${item.id}`}
                   className="mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"
                 >
-                  <Avatar url={item.photo_url} />
+                  <MemberAvatar photoUrl={item.photo_url} gender={item.gender} />
                   <div className="min-w-0 flex-1 pr-3">
                     <div className="truncate text-[15px] font-semibold text-text">{item.name}</div>
                     <div className="mt-0.5 text-xs text-text-muted">{item.phone ?? "No phone on file"}</div>
@@ -223,7 +241,7 @@ export default function ClientsList() {
                 to={`/clients/${item.id}`}
                 className="mb-2.5 flex items-center gap-3 rounded-2xl border border-border bg-surface p-3.5"
               >
-                <Avatar url={item.photo_url} />
+                <MemberAvatar photoUrl={item.photo_url} gender={item.gender} />
                 <div className="min-w-0 flex-1 pr-3">
                   <div className="truncate text-[15px] font-semibold text-text">{item.name}</div>
                   <div className="mt-0.5 text-xs capitalize text-text-muted">

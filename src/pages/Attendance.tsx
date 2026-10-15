@@ -4,17 +4,10 @@ import { useAuth } from "@/lib/auth-context";
 import { today } from "@/lib/dates";
 import { Input } from "@/components/ui";
 import { Field } from "@/components/Field";
+import { MemberAvatar } from "@/components/MemberAvatar";
 import TopBar from "@/components/TopBar";
 import { IconCheckCircle } from "@/components/icons";
 import type { Class, Member } from "@/types/database";
-
-function Avatar({ url }: { url: string | null }) {
-  return (
-    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : null}
-    </div>
-  );
-}
 
 export default function Attendance() {
   const { staffUser } = useAuth();
@@ -176,7 +169,7 @@ export default function Attendance() {
                   present ? "border-success/40 bg-success-bg" : "border-border bg-surface"
                 }`}
               >
-                <Avatar url={m.photo_url} />
+                <MemberAvatar photoUrl={m.photo_url} gender={m.gender} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[15px] font-semibold text-text">{m.name}</div>
                   <div className="mt-0.5 text-xs text-text-muted">{m.phone ?? "No phone on file"}</div>

@@ -8,11 +8,12 @@ import { formatMoney } from "@/lib/money";
 import { getBusinessTypeConfig } from "@/lib/businessTypes";
 import { Badge, Button, Card, DayPills, Input, StatTile } from "@/components/ui";
 import { Field } from "@/components/Field";
+import { MemberAvatar } from "@/components/MemberAvatar";
 import { IconCalendarCheck, IconCheckCircle, IconFlame, IconPercent } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
-import type { BusinessType, MemberStatus } from "@/types/database";
+import type { BusinessType, Gender, MemberStatus } from "@/types/database";
 
 interface ScheduleItem {
   name: string;
@@ -45,6 +46,7 @@ interface CheckinResult {
   member_status: MemberStatus;
   this_month_paid: boolean;
   photo_url: string | null;
+  gender: Gender | null;
   batch_name: string | null;
   batch_instructor_name: string | null;
   batch_days_of_week: number[] | null;
@@ -272,11 +274,7 @@ export default function Checkin() {
               <Badge tone="accent">Member</Badge>
             </div>
             <div className="flex items-center gap-3">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-                {result.photo_url ? (
-                  <img src={result.photo_url} alt="" className="h-full w-full object-cover" />
-                ) : null}
-              </div>
+              <MemberAvatar photoUrl={result.photo_url} gender={result.gender} size={56} />
               <div>
                 <div className="font-heading text-lg text-text">{result.member_name}</div>
                 <div className="text-xs text-text-muted">{studioInfo.name}</div>

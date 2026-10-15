@@ -5,11 +5,12 @@ import { supabase } from "@/lib/supabase";
 import { today } from "@/lib/dates";
 import { Badge, Card, Button, Input } from "@/components/ui";
 import { Field } from "@/components/Field";
+import { MemberAvatar } from "@/components/MemberAvatar";
 import { IconCheckCircle } from "@/components/icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import Footer from "@/components/Footer";
 import BrandHeader from "@/components/BrandHeader";
-import type { Class } from "@/types/database";
+import type { Class, Gender } from "@/types/database";
 
 interface StudioInfo {
   name: string;
@@ -35,15 +36,8 @@ interface RosterRow {
   name: string;
   member_phone: string | null;
   photo_url: string | null;
+  gender: Gender | null;
   present: boolean;
-}
-
-function Avatar({ url }: { url: string | null }) {
-  return (
-    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-raised">
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : null}
-    </div>
-  );
 }
 
 export default function Trainer() {
@@ -331,7 +325,7 @@ export default function Trainer() {
                       m.present ? "border-success/40 bg-success-bg" : "border-border bg-surface"
                     }`}
                   >
-                    <Avatar url={m.photo_url} />
+                    <MemberAvatar photoUrl={m.photo_url} gender={m.gender} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[15px] font-semibold text-text">{m.name}</div>
                       <div className="mt-0.5 text-xs text-text-muted">{m.member_phone ?? "No phone on file"}</div>
